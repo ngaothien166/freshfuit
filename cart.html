@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Giỏ hàng – FreshFruit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: { DEFAULT: '#2D7A3A', light: '#4CAF61', dark: '#1F5C29', 50: '#F0FDF4', 100: '#DCFCE7' },
+          accent: { DEFAULT: '#F97316', light: '#FB923C' },
+        },
+        fontFamily: { sans: ['Be Vietnam Pro', 'sans-serif'] },
+      }
+    }
+  }
+  </script>
+  <style>
+    .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: #f1f1f1; } ::-webkit-scrollbar-thumb { background: #2D7A3A; border-radius: 3px; }
+    .toast { position: fixed; bottom: 24px; right: 24px; z-index: 9999; transform: translateY(100px); opacity: 0; transition: all 0.3s ease; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .cart-item { transition: all 0.35s ease; }
+    .cart-item.removing { opacity: 0; transform: translateX(60px); max-height: 0; overflow: hidden; }
+    .qty-btn { transition: background 0.15s; }
+    .qty-btn:hover { background: #2D7A3A; color: white; }
+  </style>
+</head>
+<body class="font-sans bg-gray-50">
+
+<!-- ===== HEADER ===== -->
+<header id="header" class="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm shadow-sm transition-all duration-300">
+  <div class="max-w-7xl mx-auto px-4">
+    <div class="hidden md:flex items-center justify-between py-1.5 text-xs text-gray-500 border-b border-gray-100">
+      <span>🚚 Miễn phí giao hàng cho đơn từ 300.000đ</span>
+      <div class="flex items-center gap-4">
+        <span>📞 1800 6789</span>
+        <span>|</span>
+        <a href="#" class="hover:text-primary transition-colors">Theo dõi đơn hàng</a>
+      </div>
+    </div>
+    <div class="flex items-center justify-between py-3 gap-4">
+      <a href="index.html" class="flex items-center gap-2 shrink-0">
+        <div class="w-9 h-9 bg-primary rounded-full flex items-center justify-center">
+          <span class="text-white text-lg">🍎</span>
+        </div>
+        <div>
+          <span class="text-primary font-bold text-xl leading-none">Fresh</span><span class="text-accent font-bold text-xl leading-none">Fruit</span>
+          <p class="text-xs text-gray-400 leading-none">Tươi ngon mỗi ngày</p>
+        </div>
+      </a>
+      <div class="flex-1 max-w-xl hidden md:block">
+        <div class="relative">
+          <input type="text" placeholder="Tìm kiếm trái cây..." class="w-full pl-4 pr-12 py-2.5 rounded-full border-2 border-gray-200 focus:border-primary outline-none text-sm transition-colors">
+          <button class="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white hover:bg-primary-dark transition-colors">
+            <i class="fas fa-search text-xs"></i>
+          </button>
+        </div>
+      </div>
+      <div class="flex items-center gap-1 sm:gap-3">
+        <a href="wishlist.html" class="hidden sm:flex w-9 h-9 items-center justify-center text-gray-600 hover:text-primary relative transition-colors">
+          <i class="fas fa-heart"></i>
+          <span id="wishlistCount" class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center hidden">0</span>
+        </a>
+        <a href="cart.html" class="relative flex items-center gap-2 bg-primary text-white px-3 py-2 rounded-full hover:bg-primary-dark transition-colors text-sm font-medium">
+          <i class="fas fa-shopping-basket"></i>
+          <span class="hidden sm:inline">Giỏ hàng</span>
+          <span id="cartCount" class="bg-accent text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">0</span>
+        </a>
+        <button onclick="toggleMobileMenu()" class="md:hidden w-9 h-9 flex items-center justify-center text-gray-600">
+          <i class="fas fa-bars" id="menuIcon"></i>
+        </button>
+      </div>
+    </div>
+    <nav class="hidden md:flex items-center gap-8 py-2 text-sm font-medium border-t border-gray-100">
+      <a href="index.html" class="text-gray-600 hover:text-primary transition-colors pb-1">Trang chủ</a>
+      <a href="products.html" class="text-gray-600 hover:text-primary transition-colors pb-1">Sản phẩm</a>
+      <a href="products.html?cat=viet-nam" class="text-gray-600 hover:text-primary transition-colors pb-1">Danh mục</a>
+      <a href="products.html?promo=true" class="text-gray-600 hover:text-primary transition-colors pb-1 flex items-center gap-1">
+        Khuyến mãi <span class="bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">Hot</span>
+      </a>
+      <a href="#about" class="text-gray-600 hover:text-primary transition-colors pb-1">Giới thiệu</a>
+    </nav>
+  </div>
+  <div id="mobileMenu" class="hidden md:hidden border-t bg-white">
+    <div class="px-4 py-2">
+      <nav class="flex flex-col gap-1">
+        <a href="index.html" class="py-2.5 text-gray-700 border-b border-gray-100">🏠 Trang chủ</a>
+        <a href="products.html" class="py-2.5 text-gray-700 border-b border-gray-100">🛍️ Sản phẩm</a>
+        <a href="cart.html" class="py-2.5 text-primary font-medium border-b border-gray-100">🛒 Giỏ hàng</a>
+        <a href="wishlist.html" class="py-2.5 text-gray-700">❤️ Yêu thích</a>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<!-- ===== MAIN ===== -->
+<main class="pt-36 md:pt-32 pb-16 min-h-screen">
+  <div class="max-w-7xl mx-auto px-4">
+
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6">
+      <a href="index.html" class="hover:text-primary transition-colors">Trang chủ</a>
+      <i class="fas fa-chevron-right text-xs"></i>
+      <span class="text-gray-800 font-medium">Giỏ hàng</span>
+    </nav>
+
+    <!-- Page Title -->
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-800">Giỏ hàng của bạn</h1>
+        <p id="cartCountLabel" class="text-gray-500 text-sm mt-1">0 sản phẩm</p>
+      </div>
+      <button onclick="clearAllCart()" id="clearAllBtn" class="hidden items-center gap-2 text-red-500 hover:text-red-700 text-sm font-medium border border-red-200 hover:border-red-400 px-4 py-2 rounded-full transition-all">
+        <i class="fas fa-trash"></i>
+        <span class="hidden sm:inline">Xóa toàn bộ</span>
+      </button>
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="hidden text-center py-20">
+      <div class="text-8xl mb-6 animate-bounce">🛒</div>
+      <h2 class="text-2xl font-bold text-gray-700 mb-3">Giỏ hàng trống!</h2>
+      <p class="text-gray-500 mb-8 max-w-sm mx-auto">Bạn chưa có sản phẩm nào trong giỏ hàng. Hãy khám phá những trái cây tươi ngon của chúng tôi nhé!</p>
+      <a href="products.html" class="inline-flex items-center gap-2 bg-primary text-white px-8 py-3.5 rounded-full font-semibold hover:bg-primary-dark transition-colors shadow-md hover:shadow-lg">
+        <i class="fas fa-leaf"></i>
+        Khám phá sản phẩm
+      </a>
+    </div>
+
+    <!-- Cart Content -->
+    <div id="cartContent" class="hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        <!-- LEFT: Cart Items -->
+        <div class="lg:col-span-2">
+          <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <!-- Header Row -->
+            <div class="hidden md:grid grid-cols-12 gap-4 px-6 py-4 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              <div class="col-span-5">Sản phẩm</div>
+              <div class="col-span-2 text-center">Đơn giá</div>
+              <div class="col-span-3 text-center">Số lượng</div>
+              <div class="col-span-2 text-right">Thành tiền</div>
+            </div>
+
+            <!-- Cart Items Container -->
+            <div id="cartItemsContainer"></div>
+
+            <!-- Footer Actions -->
+            <div class="px-6 py-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <a href="products.html" class="flex items-center gap-2 text-primary font-medium text-sm hover:gap-3 transition-all">
+                <i class="fas fa-arrow-left"></i>
+                Tiếp tục mua sắm
+              </a>
+              <button onclick="clearAllCart()" class="flex items-center gap-2 text-red-500 hover:text-red-700 text-sm font-medium transition-colors">
+                <i class="fas fa-trash-alt"></i>
+                Xóa toàn bộ giỏ hàng
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Order Summary -->
+        <div class="lg:col-span-1">
+          <div class="bg-white rounded-2xl shadow-sm p-6 sticky top-36">
+            <h2 class="text-lg font-bold text-gray-800 mb-5 pb-3 border-b border-gray-100">Tóm tắt đơn hàng</h2>
+
+            <!-- Coupon -->
+            <div class="mb-5">
+              <label class="text-sm font-medium text-gray-700 mb-2 block">Mã giảm giá</label>
+              <div class="flex gap-2">
+                <input type="text" id="couponInput" placeholder="Nhập mã..." 
+                  class="flex-1 border-2 border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-primary transition-colors uppercase"
+                  oninput="this.value = this.value.toUpperCase()">
+                <button onclick="applyCoupon()" class="bg-primary text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary-dark transition-colors whitespace-nowrap">
+                  Áp dụng
+                </button>
+              </div>
+              <div id="couponMsg" class="mt-2 text-xs hidden"></div>
+              <div id="couponBadge" class="hidden mt-2 flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+                <i class="fas fa-tag text-green-600 text-xs"></i>
+                <span id="couponBadgeText" class="text-green-700 text-xs font-medium flex-1"></span>
+                <button onclick="removeCoupon()" class="text-gray-400 hover:text-red-500 transition-colors">
+                  <i class="fas fa-times text-xs"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Price Breakdown -->
+            <div class="space-y-3 mb-5">
+              <div class="flex justify-between text-sm text-gray-600">
+                <span>Tạm tính</span>
+                <span id="subtotalDisplay" class="font-medium">0đ</span>
+              </div>
+              <div class="flex justify-between text-sm text-gray-600">
+                <div>
+                  <span>Phí giao hàng</span>
+                  <span id="freeShipNote" class="hidden text-green-600 text-xs ml-1">(Miễn phí!)</span>
+                </div>
+                <span id="shippingDisplay" class="font-medium">30.000đ</span>
+              </div>
+              <div id="discountRow" class="hidden flex justify-between text-sm text-green-600">
+                <span>Giảm giá</span>
+                <span id="discountDisplay" class="font-medium">-0đ</span>
+              </div>
+              <div class="border-t border-dashed border-gray-200 pt-3 flex justify-between font-bold text-gray-800 text-base">
+                <span>Tổng cộng</span>
+                <span id="totalDisplay" class="text-primary text-lg">0đ</span>
+              </div>
+            </div>
+
+            <!-- Free Shipping Progress -->
+            <div id="shippingProgress" class="mb-5 bg-orange-50 rounded-xl p-3">
+              <p class="text-xs text-orange-700 mb-2">
+                <i class="fas fa-truck mr-1"></i>
+                <span id="shippingProgressText">Mua thêm để được miễn phí giao hàng</span>
+              </p>
+              <div class="w-full bg-orange-100 rounded-full h-2">
+                <div id="shippingBar" class="bg-accent h-2 rounded-full transition-all duration-500" style="width:0%"></div>
+              </div>
+            </div>
+
+            <!-- Checkout Button -->
+            <a href="checkout.html" class="block w-full bg-primary text-white text-center py-4 rounded-xl font-bold text-base hover:bg-primary-dark transition-colors shadow-md hover:shadow-lg mb-4">
+              <i class="fas fa-lock mr-2"></i>
+              Tiến hành thanh toán
+            </a>
+
+            <!-- Security Badges -->
+            <div class="text-center">
+              <p class="text-xs text-gray-400 mb-2">Thanh toán an toàn & bảo mật</p>
+              <div class="flex justify-center gap-2 flex-wrap">
+                <span class="bg-gray-100 text-gray-600 text-xs px-2.5 py-1 rounded font-semibold">VISA</span>
+                <span class="bg-gray-100 text-gray-600 text-xs px-2.5 py-1 rounded font-semibold">MasterCard</span>
+                <span class="bg-gray-100 text-gray-600 text-xs px-2.5 py-1 rounded font-semibold">MoMo</span>
+                <span class="bg-gray-100 text-gray-600 text-xs px-2.5 py-1 rounded font-semibold">ZaloPay</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- ===== FOOTER ===== -->
+<footer class="bg-gray-900 text-gray-300">
+  <div class="max-w-7xl mx-auto px-4 py-12">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div class="lg:col-span-1">
+        <div class="flex items-center gap-2 mb-4">
+          <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center"><span class="text-white text-xl">🍎</span></div>
+          <div><span class="text-white font-bold text-xl">Fresh</span><span class="text-accent font-bold text-xl">Fruit</span></div>
+        </div>
+        <p class="text-sm text-gray-400 leading-relaxed mb-4">Cung cấp trái cây tươi ngon, an toàn, chất lượng cao trực tiếp từ vườn đến tay bạn.</p>
+      </div>
+      <div>
+        <h4 class="text-white font-semibold mb-4">Liên kết nhanh</h4>
+        <ul class="space-y-2 text-sm">
+          <li><a href="index.html" class="hover:text-primary transition-colors">Trang chủ</a></li>
+          <li><a href="products.html" class="hover:text-primary transition-colors">Tất cả sản phẩm</a></li>
+          <li><a href="cart.html" class="hover:text-primary transition-colors">Giỏ hàng</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="text-white font-semibold mb-4">Chính sách</h4>
+        <ul class="space-y-2 text-sm">
+          <li><a href="#" class="hover:text-primary transition-colors">Chính sách giao hàng</a></li>
+          <li><a href="#" class="hover:text-primary transition-colors">Chính sách đổi trả</a></li>
+          <li><a href="#" class="hover:text-primary transition-colors">Chính sách bảo mật</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="text-white font-semibold mb-4">Liên hệ</h4>
+        <ul class="space-y-3 text-sm">
+          <li class="flex items-center gap-2"><i class="fas fa-phone text-primary w-4"></i><span>1800 6789</span></li>
+          <li class="flex items-center gap-2"><i class="fas fa-envelope text-primary w-4"></i><span>hello@freshfruit.vn</span></li>
+          <li class="flex items-center gap-2"><i class="fas fa-clock text-primary w-4"></i><span>7:00 – 21:00, Thứ 2 – CN</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="border-t border-gray-800 py-4">
+    <div class="max-w-7xl mx-auto px-4 text-center text-xs text-gray-500">
+      © 2024 FreshFruit. Bảo lưu mọi quyền.
+    </div>
+  </div>
+</footer>
+
+<!-- Toast -->
+<div id="toast" class="toast bg-primary text-white px-5 py-3 rounded-xl shadow-lg flex items-center gap-3">
+  <i class="fas fa-check-circle text-green-300"></i>
+  <span id="toastMsg">Thành công!</span>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/store.js"></script>
+<script>
+// ---- State ----
+let cart = [];
+let appliedCoupon = null;
+const SHIPPING_FEE = 30000;
+const FREE_SHIP_THRESHOLD = 300000;
+
+// ---- Init ----
+document.addEventListener('DOMContentLoaded', () => {
+  loadCart();
+  updateHeaderCounts();
+});
+
+function loadCart() {
+  cart = (typeof Store !== 'undefined') ? Store.getCart() : JSON.parse(localStorage.getItem('ff_cart') || '[]');
+  renderCart();
+}
+
+// ---- Render ----
+function renderCart() {
+  const container = document.getElementById('cartItemsContainer');
+  const emptyState = document.getElementById('emptyState');
+  const cartContent = document.getElementById('cartContent');
+  const clearBtn = document.getElementById('clearAllBtn');
+  const countLabel = document.getElementById('cartCountLabel');
+
+  const totalItems = cart.reduce((s, i) => s + i.qty, 0);
+  countLabel.textContent = `${totalItems} sản phẩm`;
+
+  if (cart.length === 0) {
+    emptyState.classList.remove('hidden');
+    cartContent.classList.add('hidden');
+    clearBtn.classList.remove('flex');
+    clearBtn.classList.add('hidden');
+    return;
+  }
+
+  emptyState.classList.add('hidden');
+  cartContent.classList.remove('hidden');
+  clearBtn.classList.remove('hidden');
+  clearBtn.classList.add('flex');
+
+  container.innerHTML = cart.map((item, idx) => `
+    <div class="cart-item border-b border-gray-50 last:border-0" id="item-${item.id}">
+      <div class="grid grid-cols-12 gap-3 md:gap-4 px-4 md:px-6 py-4 items-center">
+        <!-- Image + Name (col 5) -->
+        <div class="col-span-12 md:col-span-5 flex items-center gap-3">
+          <div class="relative shrink-0">
+            <img src="${item.image}?w=120&h=120&fit=crop&auto=format&q=80" alt="${item.name}" class="w-16 h-16 md:w-20 md:h-20 rounded-xl object-cover shadow-sm">
+            ${item.badge ? `<span class="absolute -top-1 -left-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full leading-none">${item.badge}</span>` : ''}
+          </div>
+          <div class="flex-1 min-w-0">
+            <h3 class="font-semibold text-gray-800 text-sm md:text-base leading-snug line-clamp-2">${item.name}</h3>
+            <p class="text-xs text-gray-400 mt-0.5">${item.unit || 'kg'}</p>
+            <p class="text-accent font-bold text-sm mt-1 md:hidden">${formatPrice(item.price)}</p>
+          </div>
+          <!-- Mobile delete -->
+          <button onclick="removeItem('${item.id}')" class="md:hidden text-gray-300 hover:text-red-500 transition-colors p-1">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <!-- Unit Price (col 2) -->
+        <div class="hidden md:block col-span-2 text-center">
+          <span class="text-gray-700 font-medium text-sm">${formatPrice(item.price)}</span>
+        </div>
+
+        <!-- Quantity (col 3) -->
+        <div class="col-span-7 md:col-span-3 flex justify-start md:justify-center">
+          <div class="flex items-center border-2 border-gray-200 rounded-xl overflow-hidden">
+            <button onclick="changeQty('${item.id}', -1)" class="qty-btn w-9 h-9 flex items-center justify-center text-gray-600 bg-gray-50 border-r border-gray-200 font-bold text-base">−</button>
+            <input type="number" min="1" max="99" value="${item.qty}" 
+              onchange="setQty('${item.id}', this.value)"
+              class="w-10 h-9 text-center text-sm font-semibold outline-none border-none bg-white">
+            <button onclick="changeQty('${item.id}', 1)" class="qty-btn w-9 h-9 flex items-center justify-center text-gray-600 bg-gray-50 border-l border-gray-200 font-bold text-base">+</button>
+          </div>
+        </div>
+
+        <!-- Total Price (col 2) -->
+        <div class="col-span-4 md:col-span-2 text-right flex items-center justify-end gap-2">
+          <span class="font-bold text-gray-800 text-sm md:text-base">${formatPrice(item.price * item.qty)}</span>
+          <button onclick="removeItem('${item.id}')" class="hidden md:flex text-gray-300 hover:text-red-500 transition-colors ml-2">
+            <i class="fas fa-trash-alt text-sm"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  updateSummary();
+}
+
+// ---- Quantity ----
+function changeQty(id, delta) {
+  const item = cart.find(i => i.id == id);
+  if (!item) return;
+  item.qty = Math.max(1, item.qty + delta);
+  saveCart();
+  renderCart();
+}
+
+function setQty(id, value) {
+  const item = cart.find(i => i.id == id);
+  if (!item) return;
+  const qty = parseInt(value);
+  item.qty = isNaN(qty) || qty < 1 ? 1 : Math.min(qty, 99);
+  saveCart();
+  renderCart();
+}
+
+// ---- Remove ----
+function removeItem(id) {
+  const el = document.getElementById(`item-${id}`);
+  if (el) {
+    el.classList.add('removing');
+    setTimeout(() => {
+      cart = cart.filter(i => i.id != id);
+      saveCart();
+      renderCart();
+      updateHeaderCounts();
+    }, 350);
+  }
+}
+
+function clearAllCart() {
+  if (!confirm('Bạn có chắc muốn xóa toàn bộ giỏ hàng?')) return;
+  cart = [];
+  appliedCoupon = null;
+  saveCart();
+  renderCart();
+  updateHeaderCounts();
+  showToast('Đã xóa toàn bộ giỏ hàng', 'info');
+}
+
+// ---- Coupon ----
+const COUPONS = {
+  'FRESH10': { type: 'percent', value: 10, label: 'Giảm 10%' },
+  'WELCOME20': { type: 'percent', value: 20, label: 'Giảm 20%' },
+  'SHIP0': { type: 'ship', value: 0, label: 'Miễn phí vận chuyển' },
+};
+
+function applyCoupon() {
+  const code = document.getElementById('couponInput').value.trim().toUpperCase();
+  const msgEl = document.getElementById('couponMsg');
+  const badgeEl = document.getElementById('couponBadge');
+
+  if (!code) {
+    showCouponMsg('Vui lòng nhập mã giảm giá!', false);
+    return;
+  }
+
+  if (COUPONS[code]) {
+    appliedCoupon = { code, ...COUPONS[code] };
+    showCouponMsg('', false);
+    badgeEl.classList.remove('hidden');
+    badgeEl.classList.add('flex');
+    document.getElementById('couponBadgeText').textContent = `${code} – ${COUPONS[code].label}`;
+    document.getElementById('couponInput').value = '';
+    updateSummary();
+    showToast(`Áp dụng mã "${code}" thành công! 🎉`);
+  } else {
+    appliedCoupon = null;
+    badgeEl.classList.add('hidden');
+    badgeEl.classList.remove('flex');
+    showCouponMsg('Mã giảm giá không hợp lệ hoặc đã hết hạn!', false);
+    updateSummary();
+  }
+}
+
+function removeCoupon() {
+  appliedCoupon = null;
+  document.getElementById('couponBadge').classList.add('hidden');
+  document.getElementById('couponBadge').classList.remove('flex');
+  document.getElementById('couponMsg').classList.add('hidden');
+  updateSummary();
+  showToast('Đã gỡ mã giảm giá', 'info');
+}
+
+function showCouponMsg(msg, isSuccess) {
+  const el = document.getElementById('couponMsg');
+  if (!msg) { el.classList.add('hidden'); return; }
+  el.classList.remove('hidden');
+  el.className = `mt-2 text-xs ${isSuccess ? 'text-green-600' : 'text-red-500'}`;
+  el.textContent = msg;
+}
+
+// ---- Summary ----
+function updateSummary() {
+  const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  let discount = 0;
+  let shipping = subtotal >= FREE_SHIP_THRESHOLD ? 0 : SHIPPING_FEE;
+
+  if (appliedCoupon) {
+    if (appliedCoupon.type === 'percent') {
+      discount = Math.round(subtotal * appliedCoupon.value / 100);
+    } else if (appliedCoupon.type === 'ship') {
+      shipping = 0;
+    }
+  }
+
+  const total = subtotal - discount + shipping;
+
+  document.getElementById('subtotalDisplay').textContent = formatPrice(subtotal);
+  document.getElementById('shippingDisplay').textContent = shipping === 0 ? 'Miễn phí' : formatPrice(shipping);
+  document.getElementById('totalDisplay').textContent = formatPrice(total);
+
+  const freeNote = document.getElementById('freeShipNote');
+  if (subtotal >= FREE_SHIP_THRESHOLD || (appliedCoupon && appliedCoupon.type === 'ship')) {
+    freeNote.classList.remove('hidden');
+  } else {
+    freeNote.classList.add('hidden');
+  }
+
+  const discountRow = document.getElementById('discountRow');
+  if (discount > 0) {
+    discountRow.classList.remove('hidden');
+    discountRow.classList.add('flex');
+    document.getElementById('discountDisplay').textContent = `-${formatPrice(discount)}`;
+  } else {
+    discountRow.classList.add('hidden');
+    discountRow.classList.remove('flex');
+  }
+
+  // Shipping progress bar
+  const progress = Math.min(100, (subtotal / FREE_SHIP_THRESHOLD) * 100);
+  document.getElementById('shippingBar').style.width = `${progress}%`;
+  const remaining = FREE_SHIP_THRESHOLD - subtotal;
+  const progressDiv = document.getElementById('shippingProgress');
+
+  if (subtotal >= FREE_SHIP_THRESHOLD) {
+    progressDiv.classList.remove('bg-orange-50');
+    progressDiv.classList.add('bg-green-50');
+    document.getElementById('shippingProgressText').innerHTML = `<span class="text-green-700">🎉 Bạn được miễn phí giao hàng!</span>`;
+    document.getElementById('shippingProgressText').className = '';
+    document.getElementById('shippingBar').classList.remove('bg-accent');
+    document.getElementById('shippingBar').classList.add('bg-green-500');
+  } else {
+    progressDiv.classList.add('bg-orange-50');
+    progressDiv.classList.remove('bg-green-50');
+    document.getElementById('shippingProgressText').innerHTML = `🚚 Mua thêm <strong>${formatPrice(remaining)}</strong> để miễn phí vận chuyển`;
+    document.getElementById('shippingBar').classList.add('bg-accent');
+    document.getElementById('shippingBar').classList.remove('bg-green-500');
+  }
+
+  // Save coupon to localStorage for checkout
+  if (appliedCoupon) {
+    localStorage.setItem('ff_coupon', JSON.stringify({ ...appliedCoupon, discount, shipping }));
+  } else {
+    localStorage.removeItem('ff_coupon');
+  }
+}
+
+// ---- Save ----
+function saveCart() {
+  if (typeof Store !== 'undefined') {
+    Store.setCart(cart);
+  } else {
+    localStorage.setItem('ff_cart', JSON.stringify(cart));
+  }
+}
+
+function updateHeaderCounts() {
+  const total = cart.reduce((s, i) => s + i.qty, 0);
+  const el = document.getElementById('cartCount');
+  if (el) el.textContent = total;
+}
+
+// ---- Helpers ----
+function formatPrice(p) {
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p).replace('₫', 'đ');
+}
+
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  const m = document.getElementById('toastMsg');
+  m.textContent = msg;
+  t.className = `toast ${type === 'info' ? 'bg-gray-700' : 'bg-primary'} text-white px-5 py-3 rounded-xl shadow-lg flex items-center gap-3`;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function toggleMobileMenu() {
+  const menu = document.getElementById('mobileMenu');
+  menu.classList.toggle('hidden');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "name": "freshfruit-ecommerce",
+  "version": "1.0.0",
+  "description": "Website thương mại điện tử chuyên nghiệp bán trái cây tươi trực tuyến FreshFruit",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": ["ecommerce", "fresh-fruit", "vietnam", "tailwind"],
+  "author": "Antigravity",
+  "license": "MIT"
+}

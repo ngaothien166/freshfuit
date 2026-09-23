@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sản phẩm – FreshFruit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: { DEFAULT: '#2D7A3A', light: '#4CAF61', dark: '#1F5C29', 50: '#F0FDF4', 100: '#DCFCE7' },
+            accent:  { DEFAULT: '#F97316', light: '#FB923C' },
+          },
+          fontFamily: { sans: ['Be Vietnam Pro', 'sans-serif'] },
+        }
+      }
+    }
+  </script>
+  <style>
+    .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f1f1; }
+    ::-webkit-scrollbar-thumb { background: #2D7A3A; border-radius: 3px; }
+    .toast { position: fixed; bottom: 24px; right: 24px; z-index: 9999; transform: translateY(100px); opacity: 0; transition: all 0.3s ease; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .filter-drawer { transform: translateX(-100%); transition: transform 0.35s ease; }
+    .filter-drawer.open { transform: translateX(0); }
+    .drawer-overlay { opacity: 0; pointer-events: none; transition: opacity 0.35s ease; }
+    .drawer-overlay.open { opacity: 1; pointer-events: all; }
+    input[type=range] { accent-color: #2D7A3A; }
+    .product-list-card { display: flex; gap: 1rem; align-items: flex-start; }
+    .view-btn.active { background: #2D7A3A; color: white; }
+    .sort-select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.5rem center; background-size: 1.25em 1.25em; padding-right: 2.5rem; appearance: none; }
+  </style>
+</head>
+<body class="font-sans bg-gray-50">
+
+<!-- ════════════ HEADER ════════════ -->
+<header id="header" class="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm shadow-sm transition-all duration-300">
+  <div class="max-w-7xl mx-auto px-4">
+    <div class="hidden md:flex items-center justify-between py-1.5 text-xs text-gray-500 border-b border-gray-100">
+      <span>🚚 Miễn phí giao hàng cho đơn từ 300.000đ</span>
+      <div class="flex items-center gap-4">
+        <span>📞 1800 6789</span>
+        <span>|</span>
+        <a href="#" class="hover:text-primary transition-colors">Theo dõi đơn hàng</a>
+      </div>
+    </div>
+    <div class="flex items-center justify-between py-3 gap-4">
+      <a href="index.html" class="flex items-center gap-2 shrink-0">
+        <div class="w-9 h-9 bg-primary rounded-full flex items-center justify-center">
+          <span class="text-white text-lg">🍎</span>
+        </div>
+        <div>
+          <span class="text-primary font-bold text-xl leading-none">Fresh</span><span class="text-accent font-bold text-xl leading-none">Fruit</span>
+          <p class="text-xs text-gray-400 leading-none">Tươi ngon mỗi ngày</p>
+        </div>
+      </a>
+      <div class="flex-1 max-w-xl hidden md:block">
+        <div class="relative">
+          <input type="text" placeholder="Tìm kiếm trái cây..." id="headerSearch"
+            class="w-full pl-4 pr-12 py-2.5 rounded-full border-2 border-gray-200 focus:border-primary outline-none text-sm transition-colors">
+          <button class="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white hover:bg-primary-dark transition-colors">
+            <i class="fas fa-search text-xs"></i>
+          </button>
+        </div>
+      </div>
+      <div class="flex items-center gap-1 sm:gap-3">
+        <button onclick="toggleSearch()" class="md:hidden w-9 h-9 flex items-center justify-center text-gray-600 hover:text-primary">
+          <i class="fas fa-search"></i>
+        </button>
+        <a href="wishlist.html" class="hidden sm:flex w-9 h-9 items-center justify-center text-gray-600 hover:text-primary relative transition-colors">
+          <i class="fas fa-heart"></i>
+          <span id="wishlistCount" class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center hidden">0</span>
+        </a>
+        <a href="cart.html" class="relative flex items-center gap-2 bg-primary text-white px-3 py-2 rounded-full hover:bg-primary-dark transition-colors text-sm font-medium">
+          <i class="fas fa-shopping-basket"></i>
+          <span class="hidden sm:inline">Giỏ hàng</span>
+          <span id="cartCount" class="bg-accent text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">0</span>
+        </a>
+        <button onclick="toggleMobileMenu()" class="md:hidden w-9 h-9 flex items-center justify-center text-gray-600">
+          <i class="fas fa-bars" id="menuIcon"></i>
+        </button>
+      </div>
+    </div>
+    <nav class="hidden md:flex items-center gap-8 py-2 text-sm font-medium border-t border-gray-100">
+      <a href="index.html" class="text-gray-600 hover:text-primary transition-colors pb-1">Trang chủ</a>
+      <a href="products.html" class="text-primary border-b-2 border-primary pb-1">Sản phẩm</a>
+      <a href="products.html?cat=viet-nam" class="text-gray-600 hover:text-primary transition-colors pb-1">Danh mục</a>
+      <a href="products.html?promo=true" class="text-gray-600 hover:text-primary transition-colors pb-1 flex items-center gap-1">
+        Khuyến mãi <span class="bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">Hot</span>
+      </a>
+      <a href="#about" class="text-gray-600 hover:text-primary transition-colors pb-1">Giới thiệu</a>
+    </nav>
+  </div>
+  <div id="mobileMenu" class="hidden md:hidden border-t bg-white">
+    <div class="px-4 py-2">
+      <input type="text" placeholder="Tìm kiếm..." class="w-full px-4 py-2 border rounded-full text-sm mb-3 outline-none focus:border-primary">
+      <nav class="flex flex-col gap-1">
+        <a href="index.html" class="py-2.5 text-gray-700 border-b border-gray-100">🏠 Trang chủ</a>
+        <a href="products.html" class="py-2.5 text-primary font-medium border-b border-gray-100">🛍️ Sản phẩm</a>
+        <a href="products.html?cat=viet-nam" class="py-2.5 text-gray-700 border-b border-gray-100">📂 Danh mục</a>
+        <a href="products.html?promo=true" class="py-2.5 text-gray-700 border-b border-gray-100">🔥 Khuyến mãi</a>
+        <a href="cart.html" class="py-2.5 text-gray-700 border-b border-gray-100">🛒 Giỏ hàng</a>
+        <a href="wishlist.html" class="py-2.5 text-gray-700">❤️ Yêu thích</a>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<!-- ════════════ MOBILE FILTER DRAWER ════════════ -->
+<div id="drawerOverlay" class="drawer-overlay fixed inset-0 bg-black/50 z-40" onclick="closeFilterDrawer()"></div>
+<aside id="filterDrawer" class="filter-drawer fixed top-0 left-0 h-full w-80 max-w-[90vw] bg-white z-50 shadow-2xl overflow-y-auto">
+  <div class="flex items-center justify-between p-4 border-b bg-primary-50">
+    <h3 class="font-bold text-gray-800 text-lg">Bộ lọc sản phẩm</h3>
+    <button onclick="closeFilterDrawer()" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 text-gray-500">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+  <div class="p-4" id="drawerFilterContent"></div>
+  <div class="p-4 border-t sticky bottom-0 bg-white flex gap-3">
+    <button onclick="applyFilters(); closeFilterDrawer();" class="flex-1 bg-primary text-white py-3 rounded-xl font-semibold hover:bg-primary-dark transition-colors">
+      Áp dụng
+    </button>
+    <button onclick="clearFilters()" class="flex-1 border-2 border-gray-300 text-gray-600 py-3 rounded-xl font-semibold hover:border-primary hover:text-primary transition-colors">
+      Xóa lọc
+    </button>
+  </div>
+</aside>
+
+<!-- ════════════ MAIN ════════════ -->
+<main class="pt-36 md:pt-32 pb-16">
+  <div class="max-w-7xl mx-auto px-4">
+
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6">
+      <a href="index.html" class="hover:text-primary transition-colors flex items-center gap-1"><i class="fas fa-home text-xs"></i> Trang chủ</a>
+      <i class="fas fa-chevron-right text-xs text-gray-300"></i>
+      <span class="text-primary font-medium">Sản phẩm</span>
+    </nav>
+
+    <!-- Page Title -->
+    <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div>
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-800" id="pageTitle">Tất cả sản phẩm</h1>
+        <p class="text-gray-500 text-sm mt-1" id="pageSubtitle">Trái cây tươi ngon chất lượng cao từ vườn đến bàn ăn</p>
+      </div>
+      <!-- Active filter tags -->
+      <div id="activeFilterTags" class="flex flex-wrap gap-2"></div>
+    </div>
+
+    <div class="flex gap-6">
+      <!-- ── Sidebar Desktop ──────────────────────────── -->
+      <aside class="hidden lg:block w-64 shrink-0">
+        <div class="bg-white rounded-2xl shadow-sm p-5 sticky top-36" id="desktopFilterPanel">
+          <div class="flex items-center justify-between mb-5">
+            <h3 class="font-bold text-gray-800 flex items-center gap-2"><i class="fas fa-sliders-h text-primary text-sm"></i> Bộ lọc</h3>
+            <button onclick="clearFilters()" class="text-xs text-primary hover:underline font-medium">Xóa tất cả</button>
+          </div>
+          <!-- Sidebar Search -->
+          <div class="mb-5">
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Tìm kiếm</label>
+            <div class="relative">
+              <input type="text" id="sidebarSearch" placeholder="Tên sản phẩm..." class="w-full pl-3 pr-9 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:border-primary outline-none transition-colors">
+              <i class="fas fa-search absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+            </div>
+          </div>
+          <!-- Category Filter -->
+          <div class="mb-5 pb-5 border-b border-gray-100">
+            <label class="block text-sm font-semibold text-gray-700 mb-3">Danh mục</label>
+            <div class="space-y-2" id="categoryCheckboxes"></div>
+          </div>
+          <!-- Price Range -->
+          <div class="mb-5 pb-5 border-b border-gray-100">
+            <label class="block text-sm font-semibold text-gray-700 mb-3">Khoảng giá</label>
+            <div class="flex gap-2 mb-3">
+              <div class="flex-1">
+                <label class="text-xs text-gray-400 mb-1 block">Từ (đ)</label>
+                <input type="number" id="priceMin" placeholder="0" min="0" class="w-full border-2 border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:border-primary outline-none">
+              </div>
+              <div class="flex-1">
+                <label class="text-xs text-gray-400 mb-1 block">Đến (đ)</label>
+                <input type="number" id="priceMax" placeholder="500.000" min="0" class="w-full border-2 border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:border-primary outline-none">
+              </div>
+            </div>
+            <div class="space-y-1">
+              <input type="range" id="priceSlider" min="0" max="500000" step="5000" value="500000" class="w-full">
+              <div class="flex justify-between text-xs text-gray-400">
+                <span>0đ</span>
+                <span id="priceSliderVal" class="text-primary font-semibold">500.000đ</span>
+                <span>500.000đ</span>
+              </div>
+            </div>
+          </div>
+          <!-- Special Filters -->
+          <div class="mb-5 pb-5 border-b border-gray-100">
+            <label class="block text-sm font-semibold text-gray-700 mb-3">Lọc nhanh</label>
+            <div class="space-y-2">
+              <label class="flex items-center gap-2.5 cursor-pointer group">
+                <input type="checkbox" id="filterNew" class="w-4 h-4 accent-primary rounded">
+                <span class="text-sm text-gray-600 group-hover:text-primary transition-colors flex items-center gap-1.5">
+                  <span class="w-2 h-2 bg-blue-500 rounded-full"></span> Hàng mới về
+                </span>
+              </label>
+              <label class="flex items-center gap-2.5 cursor-pointer group">
+                <input type="checkbox" id="filterBestSeller" class="w-4 h-4 accent-primary rounded">
+                <span class="text-sm text-gray-600 group-hover:text-primary transition-colors flex items-center gap-1.5">
+                  <span class="w-2 h-2 bg-accent rounded-full"></span> Bán chạy nhất
+                </span>
+              </label>
+              <label class="flex items-center gap-2.5 cursor-pointer group">
+                <input type="checkbox" id="filterOnSale" class="w-4 h-4 accent-primary rounded">
+                <span class="text-sm text-gray-600 group-hover:text-primary transition-colors flex items-center gap-1.5">
+                  <span class="w-2 h-2 bg-red-500 rounded-full"></span> Đang khuyến mãi
+                </span>
+              </label>
+            </div>
+          </div>
+          <!-- Apply Button -->
+          <button onclick="applyFilters()" class="w-full bg-primary text-white py-2.5 rounded-xl font-semibold hover:bg-primary-dark transition-colors flex items-center justify-center gap-2">
+            <i class="fas fa-filter text-sm"></i> Áp dụng bộ lọc
+          </button>
+        </div>
+      </aside>
+
+      <!-- ── Product Area ──────────────────────────── -->
+      <div class="flex-1 min-w-0">
+        <!-- Top Bar -->
+        <div class="bg-white rounded-2xl shadow-sm px-4 py-3 mb-5 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <!-- Mobile filter btn -->
+            <button onclick="openFilterDrawer()" class="lg:hidden flex items-center gap-2 bg-primary-50 text-primary border border-primary/20 px-3 py-2 rounded-xl text-sm font-medium hover:bg-primary hover:text-white transition-all">
+              <i class="fas fa-sliders-h text-sm"></i>
+              <span>Bộ lọc</span>
+              <span id="filterBadge" class="hidden bg-primary text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">0</span>
+            </button>
+            <span class="text-sm text-gray-500" id="productCount"><i class="fas fa-box-open text-gray-300 mr-1"></i>0 sản phẩm</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <!-- Sort -->
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-gray-400 hidden sm:inline whitespace-nowrap">Sắp xếp:</span>
+              <select id="sortSelect" onchange="applySortAndRender()" class="sort-select text-sm border-2 border-gray-200 rounded-xl px-3 py-2 focus:border-primary outline-none bg-white text-gray-700 font-medium cursor-pointer">
+                <option value="popular">Phổ biến nhất</option>
+                <option value="newest">Mới nhất</option>
+                <option value="price-asc">Giá tăng dần</option>
+                <option value="price-desc">Giá giảm dần</option>
+                <option value="best-seller">Bán chạy</option>
+                <option value="rating">Đánh giá cao</option>
+              </select>
+            </div>
+            <!-- View Toggle -->
+            <div class="flex border-2 border-gray-200 rounded-xl overflow-hidden">
+              <button id="gridViewBtn" onclick="setView('grid')" class="view-btn active w-9 h-9 flex items-center justify-center text-white bg-primary transition-colors" title="Grid view">
+                <i class="fas fa-th-large text-xs"></i>
+              </button>
+              <button id="listViewBtn" onclick="setView('list')" class="view-btn w-9 h-9 flex items-center justify-center text-gray-500 hover:text-primary transition-colors" title="List view">
+                <i class="fas fa-list text-xs"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Product Grid / List -->
+        <div id="productGrid" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4"></div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden text-center py-20">
+          <div class="text-8xl mb-4">🔍</div>
+          <h3 class="text-xl font-bold text-gray-700 mb-2">Không tìm thấy sản phẩm</h3>
+          <p class="text-gray-500 mb-6">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm khác nhé!</p>
+          <button onclick="clearFilters()" class="bg-primary text-white px-6 py-3 rounded-full font-semibold hover:bg-primary-dark transition-colors">
+            Xóa bộ lọc
+          </button>
+        </div>
+
+        <!-- Pagination / Load More -->
+        <div id="paginationArea" class="mt-8 flex flex-col items-center gap-4">
+          <div id="loadMoreWrap" class="w-full flex justify-center"></div>
+          <div id="paginationInfo" class="text-sm text-gray-400"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- ════════════ FOOTER ════════════ -->
+<footer class="bg-gray-900 text-gray-300 mt-20">
+  <div class="max-w-7xl mx-auto px-4 py-12">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div class="lg:col-span-1">
+        <div class="flex items-center gap-2 mb-4">
+          <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center"><span class="text-white text-xl">🍎</span></div>
+          <div><span class="text-white font-bold text-xl">Fresh</span><span class="text-accent font-bold text-xl">Fruit</span></div>
+        </div>
+        <p class="text-sm text-gray-400 leading-relaxed mb-4">Cung cấp trái cây tươi ngon, an toàn, chất lượng cao trực tiếp từ vườn đến tay bạn.</p>
+        <div class="flex gap-3">
+          <a href="#" class="w-9 h-9 bg-blue-600 rounded-full flex items-center justify-center text-white hover:bg-blue-700 transition-colors"><i class="fab fa-facebook-f text-sm"></i></a>
+          <a href="#" class="w-9 h-9 bg-gradient-to-br from-purple-600 to-pink-500 rounded-full flex items-center justify-center text-white hover:opacity-90 transition-opacity"><i class="fab fa-instagram text-sm"></i></a>
+          <a href="#" class="w-9 h-9 bg-black rounded-full flex items-center justify-center text-white hover:bg-gray-800 transition-colors"><i class="fab fa-tiktok text-sm"></i></a>
+        </div>
+      </div>
+      <div>
+        <h4 class="text-white font-semibold mb-4">Liên kết nhanh</h4>
+        <ul class="space-y-2 text-sm">
+          <li><a href="index.html" class="hover:text-primary transition-colors">Trang chủ</a></li>
+          <li><a href="products.html" class="hover:text-primary transition-colors">Tất cả sản phẩm</a></li>
+          <li><a href="products.html?cat=viet-nam" class="hover:text-primary transition-colors">Trái cây Việt Nam</a></li>
+          <li><a href="products.html?cat=nhap-khau" class="hover:text-primary transition-colors">Trái cây nhập khẩu</a></li>
+          <li><a href="products.html?promo=true" class="hover:text-primary transition-colors">Khuyến mãi</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="text-white font-semibold mb-4">Chính sách</h4>
+        <ul class="space-y-2 text-sm">
+          <li><a href="#" class="hover:text-primary transition-colors">Chính sách mua hàng</a></li>
+          <li><a href="#" class="hover:text-primary transition-colors">Chính sách giao hàng</a></li>
+          <li><a href="#" class="hover:text-primary transition-colors">Chính sách đổi trả</a></li>
+          <li><a href="#" class="hover:text-primary transition-colors">Chính sách bảo mật</a></li>
+          <li><a href="#" class="hover:text-primary transition-colors">Điều khoản dịch vụ</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="text-white font-semibold mb-4">Liên hệ</h4>
+        <ul class="space-y-3 text-sm">
+          <li class="flex items-start gap-2"><i class="fas fa-map-marker-alt text-primary mt-0.5 w-4"></i><span>123 Đường Nguyễn Văn Linh, Quận 7, TP.HCM</span></li>
+          <li class="flex items-center gap-2"><i class="fas fa-phone text-primary w-4"></i><a href="tel:18006789" class="hover:text-primary">1800 6789</a></li>
+          <li class="flex items-center gap-2"><i class="fas fa-envelope text-primary w-4"></i><a href="mailto:hello@freshfruit.vn" class="hover:text-primary">hello@freshfruit.vn</a></li>
+          <li class="flex items-center gap-2"><i class="fas fa-clock text-primary w-4"></i><span>7:00 – 21:00, Thứ 2 – CN</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="border-t border-gray-800 py-4">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-gray-500">
+      <span>© 2024 FreshFruit. Bảo lưu mọi quyền.</span>
+      <div class="flex items-center gap-2">
+        <span>Thanh toán an toàn:</span>
+        <span class="bg-gray-700 px-2 py-0.5 rounded text-xs">VISA</span>
+        <span class="bg-gray-700 px-2 py-0.5 rounded text-xs">MasterCard</span>
+        <span class="bg-gray-700 px-2 py-0.5 rounded text-xs">MoMo</span>
+        <span class="bg-gray-700 px-2 py-0.5 rounded text-xs">ZaloPay</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- Toast -->
+<div id="toast" class="toast px-5 py-3 rounded-xl shadow-lg flex items-center gap-3">
+  <i class="fas fa-check-circle text-green-300"></i>
+  <span id="toastMsg">Đã thêm vào giỏ hàng!</span>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/store.js"></script>
+<script>
+// ─── State ───────────────────────────────────────────────────────
+let currentView = 'grid';
+let currentPage = 1;
+const PAGE_SIZE = 8;
+
+let filters = {
+  search: '',
+  categories: [],
+  priceMin: 0,
+  priceMax: 500000,
+  isNew: false,
+  isBestSeller: false,
+  isOnSale: false,
+};
+
+let filteredProducts = [...PRODUCTS];
+
+// ─── Init ─────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  buildCategoryCheckboxes();
+  syncDrawerContent();
+  readURLParams();
+  applyFilters();
+
+  // Slider sync
+  const slider = document.getElementById('priceSlider');
+  slider.addEventListener('input', () => {
+    document.getElementById('priceSliderVal').textContent = formatPrice(+slider.value);
+    document.getElementById('priceMax').value = slider.value;
+    filters.priceMax = +slider.value;
+  });
+
+  // Sidebar search debounce
+  let debounce;
+  document.getElementById('sidebarSearch').addEventListener('input', e => {
+    clearTimeout(debounce);
+    debounce = setTimeout(() => {
+      filters.search = e.target.value.trim().toLowerCase();
+      currentPage = 1;
+      applyFilters();
+    }, 300);
+  });
+});
+
+// ─── URL Params ────────────────────────────────────────────────────
+function readURLParams() {
+  const params = new URLSearchParams(window.location.search);
+
+  if (params.get('search')) {
+    filters.search = params.get('search').toLowerCase();
+    document.getElementById('sidebarSearch').value = params.get('search');
+    document.getElementById('headerSearch').value = params.get('search');
+  }
+
+  if (params.get('cat')) {
+    const cat = params.get('cat');
+    filters.categories = [cat];
+    const cb = document.querySelector(`#categoryCheckboxes input[value="${cat}"]`);
+    if (cb) cb.checked = true;
+    // Update page title for category
+    const catObj = CATEGORIES.find(c => c.id === cat);
+    if (catObj) {
+      document.getElementById('pageTitle').textContent = catObj.name;
+      document.getElementById('pageSubtitle').textContent = `${catObj.icon} ${catObj.count} sản phẩm trong danh mục`;
+    }
+  }
+
+  if (params.get('promo') === 'true') {
+    filters.isOnSale = true;
+    document.getElementById('filterOnSale').checked = true;
+    document.getElementById('pageTitle').textContent = '🔥 Sản phẩm khuyến mãi';
+    document.getElementById('pageSubtitle').textContent = 'Ưu đãi có hạn – mua ngay kẻo lỡ!';
+  }
+
+  if (params.get('new') === 'true') {
+    filters.isNew = true;
+    document.getElementById('filterNew').checked = true;
+  }
+
+  if (params.get('best') === 'true') {
+    filters.isBestSeller = true;
+    document.getElementById('filterBestSeller').checked = true;
+  }
+}
+
+// ─── Build Checkboxes ──────────────────────────────────────────────
+function buildCategoryCheckboxes(containerId = 'categoryCheckboxes') {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = CATEGORIES.map(cat => `
+    <label class="flex items-center justify-between cursor-pointer group">
+      <div class="flex items-center gap-2.5">
+        <input type="checkbox" name="cat" value="${cat.id}"
+          class="w-4 h-4 accent-primary rounded"
+          onchange="onCategoryChange()"
+          ${filters.categories.includes(cat.id) ? 'checked' : ''}>
+        <span class="text-sm text-gray-600 group-hover:text-primary transition-colors">${cat.icon} ${cat.name}</span>
+      </div>
+      <span class="text-xs text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full">${cat.count}</span>
+    </label>
+  `).join('');
+}
+
+function syncDrawerContent() {
+  buildCategoryCheckboxes('drawerCategoryCheckboxes');
+}
+
+function onCategoryChange() {
+  filters.categories = [...document.querySelectorAll('#categoryCheckboxes input[name="cat"]:checked')].map(c => c.value);
+  currentPage = 1;
+}
+
+// ─── Filter Logic ──────────────────────────────────────────────────
+function applyFilters() {
+  // Collect from UI
+  filters.categories = [...document.querySelectorAll('#categoryCheckboxes input[name="cat"]:checked')].map(c => c.value);
+  filters.priceMin = +document.getElementById('priceMin').value || 0;
+  filters.priceMax = +document.getElementById('priceMax').value || 500000;
+  filters.isNew = document.getElementById('filterNew').checked;
+  filters.isBestSeller = document.getElementById('filterBestSeller').checked;
+  filters.isOnSale = document.getElementById('filterOnSale').checked;
+
+  // Filter
+  filteredProducts = PRODUCTS.filter(p => {
+    if (filters.search && !p.name.toLowerCase().includes(filters.search) && !p.description.toLowerCase().includes(filters.search)) return false;
+    if (filters.categories.length && !filters.categories.includes(p.category)) return false;
+    if (p.price < filters.priceMin) return false;
+    if (filters.priceMax > 0 && p.price > filters.priceMax) return false;
+    if (filters.isNew && !p.isNew) return false;
+    if (filters.isBestSeller && !p.isBestSeller) return false;
+    if (filters.isOnSale && !p.discount) return false;
+    return true;
+  });
+
+  currentPage = 1;
+  applySortAndRender();
+  updateActiveFilterTags();
+  updateFilterBadge();
+}
+
+function clearFilters() {
+  filters = { search: '', categories: [], priceMin: 0, priceMax: 500000, isNew: false, isBestSeller: false, isOnSale: false };
+  document.getElementById('sidebarSearch').value = '';
+  document.getElementById('priceMin').value = '';
+  document.getElementById('priceMax').value = '';
+  document.getElementById('priceSlider').value = 500000;
+  document.getElementById('priceSliderVal').textContent = '500.000đ';
+  document.getElementById('filterNew').checked = false;
+  document.getElementById('filterBestSeller').checked = false;
+  document.getElementById('filterOnSale').checked = false;
+  document.querySelectorAll('#categoryCheckboxes input').forEach(cb => cb.checked = false);
+  filteredProducts = [...PRODUCTS];
+  currentPage = 1;
+  applySortAndRender();
+  updateActiveFilterTags();
+  updateFilterBadge();
+}
+
+// ─── Sort ──────────────────────────────────────────────────────────
+function applySortAndRender() {
+  const sort = document.getElementById('sortSelect').value;
+  const sorted = [...filteredProducts];
+  switch (sort) {
+    case 'newest':      sorted.sort((a, b) => b.isNew - a.isNew); break;
+    case 'price-asc':  sorted.sort((a, b) => a.price - b.price); break;
+    case 'price-desc': sorted.sort((a, b) => b.price - a.price); break;
+    case 'best-seller':sorted.sort((a, b) => b.isBestSeller - a.isBestSeller || b.reviewCount - a.reviewCount); break;
+    case 'rating':     sorted.sort((a, b) => b.rating - a.rating); break;
+    default:           sorted.sort((a, b) => b.isFeatured - a.isFeatured || b.reviewCount - a.reviewCount); break;
+  }
+  filteredProducts = sorted;
+  renderPage();
+}
+
+// ─── Render ────────────────────────────────────────────────────────
+function renderPage() {
+  const grid = document.getElementById('productGrid');
+  const emptyState = document.getElementById('emptyState');
+  const countEl = document.getElementById('productCount');
+
+  const total = filteredProducts.length;
+  countEl.innerHTML = `<i class="fas fa-box-open text-gray-300 mr-1"></i><strong class="text-gray-700">${total}</strong> sản phẩm`;
+
+  if (total === 0) {
+    grid.innerHTML = '';
+    emptyState.classList.remove('hidden');
+    document.getElementById('paginationArea').classList.add('hidden');
+    return;
+  }
+
+  emptyState.classList.add('hidden');
+  document.getElementById('paginationArea').classList.remove('hidden');
+
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const end = Math.min(start + PAGE_SIZE, total);
+  const pageProducts = filteredProducts.slice(start, end);
+
+  if (currentView === 'grid') {
+    grid.className = 'grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4';
+    grid.innerHTML = pageProducts.map(p => renderProductCard(p)).join('');
+  } else {
+    grid.className = 'flex flex-col gap-4';
+    grid.innerHTML = pageProducts.map(p => renderProductListCard(p)).join('');
+  }
+
+  renderPagination(total);
+}
+
+function renderProductListCard(product) {
+  const hasDiscount = product.discount > 0;
+  const isWishlisted = Store.isInWishlist(product.id);
+  const cat = CATEGORIES.find(c => c.id === product.category);
+  return `
+    <div class="bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col sm:flex-row group" data-id="${product.id}">
+      <div class="relative sm:w-52 shrink-0 overflow-hidden">
+        <a href="product-detail.html?slug=${product.slug}">
+          <img src="${product.image}" alt="${product.name}" class="w-full h-48 sm:h-full object-cover group-hover:scale-105 transition-transform duration-500">
+        </a>
+        <div class="absolute top-3 left-3 flex flex-col gap-1">
+          ${hasDiscount ? `<span class="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">-${product.discount}%</span>` : ''}
+          ${product.isNew ? `<span class="bg-blue-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">Mới</span>` : ''}
+        </div>
+      </div>
+      <div class="p-5 flex flex-col justify-between flex-1">
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-xs font-medium text-primary bg-primary-50 px-2 py-0.5 rounded-full">${cat?.icon || ''} ${cat?.name || ''}</span>
+            <button onclick="handleWishlist(event, '${product.id}')" class="wishlist-btn w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors" data-id="${product.id}">
+              <i class="${isWishlisted ? 'fas text-red-500' : 'far'} fa-heart text-sm"></i>
+            </button>
+          </div>
+          <a href="product-detail.html?slug=${product.slug}">
+            <h3 class="font-bold text-gray-800 text-lg mb-2 hover:text-primary transition-colors">${product.name}</h3>
+          </a>
+          <div class="flex items-center gap-1.5 mb-2">
+            ${renderStars(product.rating)}
+            <span class="text-xs text-gray-500 font-medium">${product.rating}</span>
+            <span class="text-xs text-gray-400">(${product.reviewCount} đánh giá)</span>
+          </div>
+          <p class="text-sm text-gray-500 line-clamp-2 mb-3">${product.description}</p>
+          <div class="flex items-center gap-2 text-xs text-gray-400">
+            <i class="fas fa-map-marker-alt text-primary"></i> ${product.origin}
+            <span class="mx-1">•</span>
+            <i class="fas fa-boxes text-primary"></i> Còn ${product.stock} ${product.unit}
+          </div>
+        </div>
+        <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+          <div>
+            <span class="text-primary font-bold text-xl">${formatPrice(product.price)}</span>
+            <span class="text-sm text-gray-400 ml-1">/${product.unit}</span>
+            ${product.originalPrice ? `<p class="text-gray-400 text-sm line-through">${formatPrice(product.originalPrice)}</p>` : ''}
+          </div>
+          <div class="flex items-center gap-2">
+            <a href="product-detail.html?slug=${product.slug}" class="border-2 border-primary text-primary px-4 py-2 rounded-full text-sm font-semibold hover:bg-primary hover:text-white transition-all">
+              Chi tiết
+            </a>
+            <button onclick="handleAddToCart(event, '${product.id}')" class="add-to-cart-btn bg-primary text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-primary-dark transition-all active:scale-95 flex items-center gap-1.5">
+              <i class="fas fa-plus text-xs"></i> Thêm
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ─── Pagination ────────────────────────────────────────────────────
+function renderPagination(total) {
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+  const info = document.getElementById('paginationInfo');
+  const loadWrap = document.getElementById('loadMoreWrap');
+
+  const start = (currentPage - 1) * PAGE_SIZE + 1;
+  const end = Math.min(currentPage * PAGE_SIZE, total);
+  info.textContent = `Hiển thị ${start}–${end} / ${total} sản phẩm`;
+
+  if (totalPages <= 1) {
+    loadWrap.innerHTML = '';
+    return;
+  }
+
+  // Page buttons
+  let pages = '';
+  // Prev
+  pages += `<button onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''} class="w-9 h-9 flex items-center justify-center rounded-xl border-2 border-gray-200 text-gray-600 hover:border-primary hover:text-primary disabled:opacity-40 disabled:cursor-not-allowed transition-all">
+    <i class="fas fa-chevron-left text-xs"></i>
+  </button>`;
+
+  const range = getPageRange(currentPage, totalPages);
+  for (const p of range) {
+    if (p === '...') {
+      pages += `<span class="w-9 h-9 flex items-center justify-center text-gray-400">…</span>`;
+    } else {
+      pages += `<button onclick="goToPage(${p})" class="w-9 h-9 flex items-center justify-center rounded-xl border-2 text-sm font-semibold transition-all ${p === currentPage ? 'bg-primary border-primary text-white' : 'border-gray-200 text-gray-600 hover:border-primary hover:text-primary'}">
+        ${p}
+      </button>`;
+    }
+  }
+  // Next
+  pages += `<button onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''} class="w-9 h-9 flex items-center justify-center rounded-xl border-2 border-gray-200 text-gray-600 hover:border-primary hover:text-primary disabled:opacity-40 disabled:cursor-not-allowed transition-all">
+    <i class="fas fa-chevron-right text-xs"></i>
+  </button>`;
+
+  loadWrap.innerHTML = `<div class="flex items-center gap-2">${pages}</div>`;
+}
+
+function getPageRange(cur, total) {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const pages = [1];
+  if (cur > 3) pages.push('...');
+  for (let i = Math.max(2, cur - 1); i <= Math.min(total - 1, cur + 1); i++) pages.push(i);
+  if (cur < total - 2) pages.push('...');
+  pages.push(total);
+  return pages;
+}
+
+function goToPage(page) {
+  const totalPages = Math.ceil(filteredProducts.length / PAGE_SIZE);
+  if (page < 1 || page > totalPages) return;
+  currentPage = page;
+  renderPage();
+  window.scrollTo({ top: 200, behavior: 'smooth' });
+}
+
+// ─── View Toggle ───────────────────────────────────────────────────
+function setView(view) {
+  currentView = view;
+  document.getElementById('gridViewBtn').classList.toggle('active', view === 'grid');
+  document.getElementById('listViewBtn').classList.toggle('active', view === 'list');
+  renderPage();
+}
+
+// ─── Active Filter Tags ────────────────────────────────────────────
+function updateActiveFilterTags() {
+  const container = document.getElementById('activeFilterTags');
+  const tags = [];
+  if (filters.search) tags.push({ label: `🔍 "${filters.search}"`, key: 'search' });
+  if (filters.isNew) tags.push({ label: '🆕 Hàng mới', key: 'isNew' });
+  if (filters.isBestSeller) tags.push({ label: '🔥 Bán chạy', key: 'isBestSeller' });
+  if (filters.isOnSale) tags.push({ label: '💰 Khuyến mãi', key: 'isOnSale' });
+  filters.categories.forEach(cat => {
+    const c = CATEGORIES.find(x => x.id === cat);
+    if (c) tags.push({ label: `${c.icon} ${c.name}`, key: 'cat_' + cat });
+  });
+
+  container.innerHTML = tags.map(t => `
+    <span class="flex items-center gap-1.5 bg-primary-50 text-primary text-xs font-medium px-3 py-1.5 rounded-full border border-primary/20">
+      ${t.label}
+      <button onclick="removeFilterTag('${t.key}')" class="hover:text-red-500 transition-colors ml-0.5">
+        <i class="fas fa-times text-xs"></i>
+      </button>
+    </span>
+  `).join('');
+}
+
+function removeFilterTag(key) {
+  if (key === 'search') { filters.search = ''; document.getElementById('sidebarSearch').value = ''; }
+  else if (key === 'isNew') { filters.isNew = false; document.getElementById('filterNew').checked = false; }
+  else if (key === 'isBestSeller') { filters.isBestSeller = false; document.getElementById('filterBestSeller').checked = false; }
+  else if (key === 'isOnSale') { filters.isOnSale = false; document.getElementById('filterOnSale').checked = false; }
+  else if (key.startsWith('cat_')) {
+    const catId = key.replace('cat_', '');
+    filters.categories = filters.categories.filter(c => c !== catId);
+    const cb = document.querySelector(`#categoryCheckboxes input[value="${catId}"]`);
+    if (cb) cb.checked = false;
+  }
+  filteredProducts = PRODUCTS.filter(applyCurrentFilters);
+  currentPage = 1;
+  applySortAndRender();
+  updateActiveFilterTags();
+  updateFilterBadge();
+}
+
+function applyCurrentFilters(p) {
+  if (filters.search && !p.name.toLowerCase().includes(filters.search) && !p.description.toLowerCase().includes(filters.search)) return false;
+  if (filters.categories.length && !filters.categories.includes(p.category)) return false;
+  if (p.price < filters.priceMin) return false;
+  if (filters.priceMax > 0 && p.price > filters.priceMax) return false;
+  if (filters.isNew && !p.isNew) return false;
+  if (filters.isBestSeller && !p.isBestSeller) return false;
+  if (filters.isOnSale && !p.discount) return false;
+  return true;
+}
+
+function updateFilterBadge() {
+  let count = 0;
+  if (filters.search) count++;
+  if (filters.isNew) count++;
+  if (filters.isBestSeller) count++;
+  if (filters.isOnSale) count++;
+  count += filters.categories.length;
+  const badge = document.getElementById('filterBadge');
+  if (count > 0) {
+    badge.textContent = count;
+    badge.classList.remove('hidden');
+  } else {
+    badge.classList.add('hidden');
+  }
+}
+
+// ─── Drawer ────────────────────────────────────────────────────────
+function openFilterDrawer() {
+  // Sync drawer with sidebar state
+  const drawerContent = document.getElementById('drawerFilterContent');
+  drawerContent.innerHTML = `
+    <div class="mb-5">
+      <label class="block text-sm font-semibold text-gray-700 mb-2">Tìm kiếm</label>
+      <div class="relative">
+        <input type="text" id="drawerSearch" placeholder="Tên sản phẩm..." value="${filters.search}"
+          class="w-full pl-3 pr-9 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:border-primary outline-none">
+        <i class="fas fa-search absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+      </div>
+    </div>
+    <div class="mb-5 pb-5 border-b">
+      <label class="block text-sm font-semibold text-gray-700 mb-3">Danh mục</label>
+      <div class="space-y-2" id="drawerCategoryCheckboxes">
+        ${CATEGORIES.map(cat => `
+          <label class="flex items-center justify-between cursor-pointer group">
+            <div class="flex items-center gap-2.5">
+              <input type="checkbox" name="dcat" value="${cat.id}" class="w-4 h-4 accent-primary" ${filters.categories.includes(cat.id) ? 'checked' : ''}>
+              <span class="text-sm text-gray-600">${cat.icon} ${cat.name}</span>
+            </div>
+            <span class="text-xs text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full">${cat.count}</span>
+          </label>
+        `).join('')}
+      </div>
+    </div>
+    <div class="mb-5 pb-5 border-b">
+      <label class="block text-sm font-semibold text-gray-700 mb-3">Khoảng giá</label>
+      <div class="flex gap-2 mb-3">
+        <div class="flex-1">
+          <label class="text-xs text-gray-400 mb-1 block">Từ (đ)</label>
+          <input type="number" id="drawerPriceMin" placeholder="0" value="${filters.priceMin || ''}" class="w-full border-2 border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:border-primary outline-none">
+        </div>
+        <div class="flex-1">
+          <label class="text-xs text-gray-400 mb-1 block">Đến (đ)</label>
+          <input type="number" id="drawerPriceMax" placeholder="500.000" value="${filters.priceMax === 500000 ? '' : filters.priceMax}" class="w-full border-2 border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:border-primary outline-none">
+        </div>
+      </div>
+    </div>
+    <div class="mb-5">
+      <label class="block text-sm font-semibold text-gray-700 mb-3">Lọc nhanh</label>
+      <div class="space-y-2">
+        <label class="flex items-center gap-2.5 cursor-pointer">
+          <input type="checkbox" id="drawerFilterNew" class="w-4 h-4 accent-primary" ${filters.isNew ? 'checked' : ''}>
+          <span class="text-sm text-gray-600">🆕 Hàng mới về</span>
+        </label>
+        <label class="flex items-center gap-2.5 cursor-pointer">
+          <input type="checkbox" id="drawerFilterBestSeller" class="w-4 h-4 accent-primary" ${filters.isBestSeller ? 'checked' : ''}>
+          <span class="text-sm text-gray-600">🔥 Bán chạy nhất</span>
+        </label>
+        <label class="flex items-center gap-2.5 cursor-pointer">
+          <input type="checkbox" id="drawerFilterOnSale" class="w-4 h-4 accent-primary" ${filters.isOnSale ? 'checked' : ''}>
+          <span class="text-sm text-gray-600">💰 Đang khuyến mãi</span>
+        </label>
+      </div>
+    </div>
+  `;
+  document.getElementById('filterDrawer').classList.add('open');
+  document.getElementById('drawerOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeFilterDrawer() {
+  document.getElementById('filterDrawer').classList.remove('open');
+  document.getElementById('drawerOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// Override applyFilters to also read drawer inputs when open
+const _origApplyFilters = applyFilters;
+window.applyFilters = function () {
+  // Sync from drawer if open
+  const drawerSearch = document.getElementById('drawerSearch');
+  if (drawerSearch) {
+    filters.search = drawerSearch.value.trim().toLowerCase();
+    document.getElementById('sidebarSearch').value = drawerSearch.value;
+  }
+  const drawerCats = document.querySelectorAll('#drawerCategoryCheckboxes input[name="dcat"]:checked');
+  if (drawerCats.length) {
+    filters.categories = [...drawerCats].map(c => c.value);
+    // Sync sidebar
+    document.querySelectorAll('#categoryCheckboxes input').forEach(cb => cb.checked = filters.categories.includes(cb.value));
+  }
+  const dMin = document.getElementById('drawerPriceMin');
+  const dMax = document.getElementById('drawerPriceMax');
+  if (dMin) { filters.priceMin = +dMin.value || 0; document.getElementById('priceMin').value = dMin.value; }
+  if (dMax) { filters.priceMax = +dMax.value || 500000; document.getElementById('priceMax').value = dMax.value; }
+  const dNew = document.getElementById('drawerFilterNew');
+  const dBest = document.getElementById('drawerFilterBestSeller');
+  const dSale = document.getElementById('drawerFilterOnSale');
+  if (dNew) { filters.isNew = dNew.checked; document.getElementById('filterNew').checked = dNew.checked; }
+  if (dBest) { filters.isBestSeller = dBest.checked; document.getElementById('filterBestSeller').checked = dBest.checked; }
+  if (dSale) { filters.isOnSale = dSale.checked; document.getElementById('filterOnSale').checked = dSale.checked; }
+
+  filteredProducts = PRODUCTS.filter(p => {
+    if (filters.search && !p.name.toLowerCase().includes(filters.search) && !p.description.toLowerCase().includes(filters.search)) return false;
+    if (filters.categories.length && !filters.categories.includes(p.category)) return false;
+    if (p.price < filters.priceMin) return false;
+    if (filters.priceMax > 0 && p.price > filters.priceMax) return false;
+    if (filters.isNew && !p.isNew) return false;
+    if (filters.isBestSeller && !p.isBestSeller) return false;
+    if (filters.isOnSale && !p.discount) return false;
+    return true;
+  });
+
+  currentPage = 1;
+  applySortAndRender();
+  updateActiveFilterTags();
+  updateFilterBadge();
+};
+</script>
+</body>
+</html>

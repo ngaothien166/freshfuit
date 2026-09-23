@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đặt hàng thành công – FreshFruit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: { DEFAULT: '#2D7A3A', light: '#4CAF61', dark: '#1F5C29', 50: '#F0FDF4', 100: '#DCFCE7' },
+          accent: { DEFAULT: '#F97316', light: '#FB923C' },
+        },
+        fontFamily: { sans: ['Be Vietnam Pro', 'sans-serif'] },
+      }
+    }
+  }
+  </script>
+  <style>
+    .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: #f1f1f1; } ::-webkit-scrollbar-thumb { background: #2D7A3A; border-radius: 3px; }
+    .toast { position: fixed; bottom: 24px; right: 24px; z-index: 9999; transform: translateY(100px); opacity: 0; transition: all 0.3s ease; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    /* Checkmark animation */
+    @keyframes scaleIn { 0% { transform: scale(0); opacity: 0; } 60% { transform: scale(1.15); } 100% { transform: scale(1); opacity: 1; } }
+    @keyframes checkDraw { 0% { stroke-dashoffset: 200; } 100% { stroke-dashoffset: 0; } }
+    @keyframes circlePulse { 0%,100% { box-shadow: 0 0 0 0 rgba(45,122,58,0.3); } 50% { box-shadow: 0 0 0 20px rgba(45,122,58,0); } }
+    @keyframes confettiFall { 0% { transform: translateY(-20px) rotate(0deg); opacity: 1; } 100% { transform: translateY(120px) rotate(720deg); opacity: 0; } }
+    @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes progressFill { from { width: 0; } to { width: 35%; } }
+
+    .check-circle {
+      animation: scaleIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.2s both, circlePulse 2s ease 0.8s 3;
+    }
+    .check-svg path {
+      stroke-dasharray: 200;
+      stroke-dashoffset: 200;
+      animation: checkDraw 0.5s ease 0.7s forwards;
+    }
+    .fade-up { animation: fadeSlideUp 0.5s ease forwards; opacity: 0; }
+    .fade-up-1 { animation-delay: 0.3s; }
+    .fade-up-2 { animation-delay: 0.5s; }
+    .fade-up-3 { animation-delay: 0.7s; }
+    .fade-up-4 { animation-delay: 0.9s; }
+    .fade-up-5 { animation-delay: 1.1s; }
+
+    .confetti-piece {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      animation: confettiFall 1.5s ease forwards;
+    }
+
+    .timeline-step { transition: all 0.3s; }
+    .timeline-step.done .tl-icon { background: #2D7A3A; color: white; }
+    .timeline-step.active .tl-icon { background: #F97316; color: white; animation: circlePulse 1.5s ease infinite; }
+    .timeline-step.pending .tl-icon { background: #e5e7eb; color: #9ca3af; }
+    .timeline-line { transition: background 0.5s; }
+  </style>
+</head>
+<body class="font-sans bg-gray-50">
+
+<!-- ===== HEADER ===== -->
+<header id="header" class="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm shadow-sm transition-all duration-300">
+  <div class="max-w-7xl mx-auto px-4">
+    <div class="hidden md:flex items-center justify-between py-1.5 text-xs text-gray-500 border-b border-gray-100">
+      <span>🚚 Miễn phí giao hàng cho đơn từ 300.000đ</span>
+      <div class="flex items-center gap-4">
+        <span>📞 1800 6789</span>
+        <span>|</span>
+        <a href="#" class="hover:text-primary transition-colors">Theo dõi đơn hàng</a>
+      </div>
+    </div>
+    <div class="flex items-center justify-between py-3 gap-4">
+      <a href="index.html" class="flex items-center gap-2 shrink-0">
+        <div class="w-9 h-9 bg-primary rounded-full flex items-center justify-center">
+          <span class="text-white text-lg">🍎</span>
+        </div>
+        <div>
+          <span class="text-primary font-bold text-xl leading-none">Fresh</span><span class="text-accent font-bold text-xl leading-none">Fruit</span>
+          <p class="text-xs text-gray-400 leading-none">Tươi ngon mỗi ngày</p>
+        </div>
+      </a>
+      <div class="flex items-center gap-1 sm:gap-3">
+        <a href="wishlist.html" class="hidden sm:flex w-9 h-9 items-center justify-center text-gray-600 hover:text-primary relative transition-colors">
+          <i class="fas fa-heart"></i>
+          <span id="wishlistCount" class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center hidden">0</span>
+        </a>
+        <a href="cart.html" class="relative flex items-center gap-2 bg-primary text-white px-3 py-2 rounded-full hover:bg-primary-dark transition-colors text-sm font-medium">
+          <i class="fas fa-shopping-basket"></i>
+          <span class="hidden sm:inline">Giỏ hàng</span>
+          <span id="cartCount" class="bg-accent text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">0</span>
+        </a>
+      </div>
+    </div>
+    <nav class="hidden md:flex items-center gap-8 py-2 text-sm font-medium border-t border-gray-100">
+      <a href="index.html" class="text-gray-600 hover:text-primary transition-colors pb-1">Trang chủ</a>
+      <a href="products.html" class="text-gray-600 hover:text-primary transition-colors pb-1">Sản phẩm</a>
+      <a href="products.html?promo=true" class="text-gray-600 hover:text-primary transition-colors pb-1 flex items-center gap-1">Khuyến mãi <span class="bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">Hot</span></a>
+    </nav>
+  </div>
+</header>
+
+<!-- ===== MAIN ===== -->
+<main class="pt-36 md:pt-32 pb-16 min-h-screen">
+  <div class="max-w-4xl mx-auto px-4">
+
+    <!-- Confetti container -->
+    <div id="confettiContainer" class="fixed inset-0 pointer-events-none z-50 overflow-hidden"></div>
+
+    <!-- Success Hero -->
+    <div class="text-center mb-10 fade-up fade-up-1">
+      <!-- Animated Checkmark -->
+      <div class="relative inline-flex items-center justify-center mb-6">
+        <div class="check-circle w-28 h-28 bg-primary rounded-full flex items-center justify-center shadow-2xl shadow-primary/30">
+          <svg class="check-svg w-14 h-14" viewBox="0 0 52 52" fill="none">
+            <path stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" d="M12 26l10 10 18-18"/>
+          </svg>
+        </div>
+        <!-- Decorative rings -->
+        <div class="absolute inset-0 rounded-full border-4 border-primary/20 scale-110 animate-ping" style="animation-duration:2s;animation-delay:0.8s"></div>
+      </div>
+
+      <h1 class="text-3xl md:text-4xl font-black text-gray-800 mb-3">
+        Đặt hàng thành công! 🎉
+      </h1>
+      <p class="text-gray-500 text-base md:text-lg max-w-md mx-auto leading-relaxed">
+        Cảm ơn bạn đã tin tưởng <strong class="text-primary">FreshFruit</strong>. 
+        Chúng tôi sẽ xử lý đơn hàng ngay!
+      </p>
+    </div>
+
+    <!-- Order Details + Timeline Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-10">
+
+      <!-- Order Summary Box -->
+      <div class="md:col-span-3 bg-white rounded-2xl shadow-sm p-6 fade-up fade-up-2">
+        <div class="flex items-center justify-between mb-5">
+          <h2 class="text-base font-bold text-gray-800 flex items-center gap-2">
+            <i class="fas fa-receipt text-primary"></i>
+            Chi tiết đơn hàng
+          </h2>
+          <button onclick="printOrder()" class="text-xs text-primary hover:underline flex items-center gap-1">
+            <i class="fas fa-print"></i> In đơn hàng
+          </button>
+        </div>
+
+        <div class="space-y-3 text-sm">
+          <div class="flex justify-between items-center py-2.5 border-b border-gray-50">
+            <span class="text-gray-500 flex items-center gap-2"><i class="fas fa-hashtag text-primary text-xs w-4"></i>Mã đơn hàng</span>
+            <span id="orderIdDisplay" class="font-bold text-primary text-base font-mono">#–––––</span>
+          </div>
+          <div class="flex justify-between items-center py-2.5 border-b border-gray-50">
+            <span class="text-gray-500 flex items-center gap-2"><i class="fas fa-calendar text-primary text-xs w-4"></i>Ngày đặt hàng</span>
+            <span id="orderDate" class="font-medium text-gray-800">–</span>
+          </div>
+          <div class="flex justify-between items-center py-2.5 border-b border-gray-50">
+            <span class="text-gray-500 flex items-center gap-2"><i class="fas fa-credit-card text-primary text-xs w-4"></i>Thanh toán</span>
+            <span id="orderPayment" class="font-medium text-gray-800">–</span>
+          </div>
+          <div class="flex justify-between items-center py-2.5 border-b border-gray-50">
+            <span class="text-gray-500 flex items-center gap-2"><i class="fas fa-truck text-primary text-xs w-4"></i>Dự kiến giao</span>
+            <span id="orderETA" class="font-medium text-green-700">–</span>
+          </div>
+          <div class="flex justify-between items-start py-2.5 border-b border-gray-50">
+            <span class="text-gray-500 flex items-center gap-2 shrink-0"><i class="fas fa-map-marker-alt text-primary text-xs w-4"></i>Địa chỉ nhận</span>
+            <span id="orderAddress" class="font-medium text-gray-800 text-right max-w-[60%]">–</span>
+          </div>
+          <div class="flex justify-between items-center py-2.5 border-b border-gray-50">
+            <span class="text-gray-500 flex items-center gap-2"><i class="fas fa-box text-primary text-xs w-4"></i>Số sản phẩm</span>
+            <span id="orderItemCount" class="font-medium text-gray-800">–</span>
+          </div>
+          <div class="flex justify-between items-center pt-2">
+            <span class="font-bold text-gray-800 flex items-center gap-2"><i class="fas fa-coins text-primary text-xs w-4"></i>Tổng thanh toán</span>
+            <span id="orderTotal" class="font-black text-primary text-xl">–</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Timeline -->
+      <div class="md:col-span-2 bg-white rounded-2xl shadow-sm p-6 fade-up fade-up-3">
+        <h2 class="text-base font-bold text-gray-800 mb-6 flex items-center gap-2">
+          <i class="fas fa-route text-primary"></i>
+          Hành trình đơn hàng
+        </h2>
+
+        <div class="space-y-0">
+          <!-- Step 1: Đặt hàng -->
+          <div class="timeline-step done flex items-start gap-4">
+            <div class="flex flex-col items-center">
+              <div class="tl-icon w-10 h-10 rounded-full flex items-center justify-center text-base shrink-0 shadow-sm">
+                <i class="fas fa-check text-sm"></i>
+              </div>
+              <div class="timeline-line w-0.5 h-10 bg-primary mx-auto"></div>
+            </div>
+            <div class="pt-2 pb-6">
+              <p class="font-semibold text-gray-800 text-sm">Đặt hàng thành công</p>
+              <p id="tlTime1" class="text-xs text-gray-400 mt-0.5">Vừa xong</p>
+            </div>
+          </div>
+
+          <!-- Step 2: Đang xác nhận -->
+          <div class="timeline-step active flex items-start gap-4">
+            <div class="flex flex-col items-center">
+              <div class="tl-icon w-10 h-10 rounded-full flex items-center justify-center text-base shrink-0 shadow-sm">
+                <i class="fas fa-clock text-sm"></i>
+              </div>
+              <div class="timeline-line w-0.5 h-10 bg-gray-200 mx-auto"></div>
+            </div>
+            <div class="pt-2 pb-6">
+              <p class="font-semibold text-gray-800 text-sm">Đang xác nhận đơn hàng</p>
+              <p class="text-xs text-orange-500 mt-0.5 flex items-center gap-1">
+                <span class="inline-block w-1.5 h-1.5 bg-orange-400 rounded-full animate-pulse"></span>
+                Đang xử lý...
+              </p>
+            </div>
+          </div>
+
+          <!-- Step 3: Giao hàng -->
+          <div class="timeline-step pending flex items-start gap-4">
+            <div class="flex flex-col items-center">
+              <div class="tl-icon w-10 h-10 rounded-full flex items-center justify-center text-base shrink-0">
+                <i class="fas fa-truck text-sm"></i>
+              </div>
+              <div class="timeline-line w-0.5 h-10 bg-gray-200 mx-auto"></div>
+            </div>
+            <div class="pt-2 pb-6">
+              <p class="font-semibold text-gray-500 text-sm">Đang giao hàng</p>
+              <p id="tlTime3" class="text-xs text-gray-400 mt-0.5">Dự kiến trong 2–4 giờ</p>
+            </div>
+          </div>
+
+          <!-- Step 4: Hoàn thành -->
+          <div class="timeline-step pending flex items-start gap-4">
+            <div class="flex flex-col items-center">
+              <div class="tl-icon w-10 h-10 rounded-full flex items-center justify-center text-base shrink-0">
+                <i class="fas fa-box-open text-sm"></i>
+              </div>
+            </div>
+            <div class="pt-2">
+              <p class="font-semibold text-gray-500 text-sm">Giao hàng thành công</p>
+              <p id="tlTime4" class="text-xs text-gray-400 mt-0.5">–</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Items in order -->
+    <div id="orderItemsSection" class="bg-white rounded-2xl shadow-sm p-6 mb-6 fade-up fade-up-4">
+      <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center gap-2">
+        <i class="fas fa-shopping-basket text-primary"></i>
+        Sản phẩm đã đặt
+      </h2>
+      <div id="orderItemsList" class="space-y-3"></div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex flex-col sm:flex-row gap-3 mb-12 fade-up fade-up-5">
+      <a href="products.html" class="flex-1 border-2 border-primary text-primary text-center py-4 rounded-xl font-bold hover:bg-primary hover:text-white transition-all flex items-center justify-center gap-2">
+        <i class="fas fa-leaf"></i>
+        Tiếp tục mua sắm
+      </a>
+      <button onclick="viewOrder()" class="flex-1 bg-primary text-white py-4 rounded-xl font-bold hover:bg-primary-dark transition-colors shadow-md hover:shadow-lg flex items-center justify-center gap-2">
+        <i class="fas fa-eye"></i>
+        Xem đơn hàng của tôi
+      </button>
+    </div>
+
+    <!-- Suggested Products -->
+    <div class="fade-up" style="animation-delay:1.3s;opacity:0">
+      <div class="flex items-center justify-between mb-5">
+        <h2 class="text-xl font-bold text-gray-800">Có thể bạn cũng thích</h2>
+        <a href="products.html" class="text-primary text-sm font-medium hover:underline">Xem tất cả →</a>
+      </div>
+      <div id="suggestedProducts" class="grid grid-cols-2 sm:grid-cols-4 gap-4"></div>
+    </div>
+
+  </div>
+</main>
+
+<!-- ===== FOOTER ===== -->
+<footer class="bg-gray-900 text-gray-300 mt-20">
+  <div class="max-w-7xl mx-auto px-4 py-12">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div class="lg:col-span-1">
+        <div class="flex items-center gap-2 mb-4">
+          <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center"><span class="text-white text-xl">🍎</span></div>
+          <div><span class="text-white font-bold text-xl">Fresh</span><span class="text-accent font-bold text-xl">Fruit</span></div>
+        </div>
+        <p class="text-sm text-gray-400 leading-relaxed">Cung cấp trái cây tươi ngon, an toàn, chất lượng cao trực tiếp từ vườn đến tay bạn.</p>
+      </div>
+      <div>
+        <h4 class="text-white font-semibold mb-4">Liên kết nhanh</h4>
+        <ul class="space-y-2 text-sm">
+          <li><a href="index.html" class="hover:text-primary transition-colors">Trang chủ</a></li>
+          <li><a href="products.html" class="hover:text-primary transition-colors">Tất cả sản phẩm</a></li>
+          <li><a href="products.html?promo=true" class="hover:text-primary transition-colors">Khuyến mãi</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="text-white font-semibold mb-4">Chính sách</h4>
+        <ul class="space-y-2 text-sm">
+          <li><a href="#" class="hover:text-primary transition-colors">Chính sách giao hàng</a></li>
+          <li><a href="#" class="hover:text-primary transition-colors">Chính sách đổi trả</a></li>
+          <li><a href="#" class="hover:text-primary transition-colors">Chính sách bảo mật</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="text-white font-semibold mb-4">Liên hệ</h4>
+        <ul class="space-y-3 text-sm">
+          <li class="flex items-center gap-2"><i class="fas fa-phone text-primary w-4"></i><span>1800 6789</span></li>
+          <li class="flex items-center gap-2"><i class="fas fa-envelope text-primary w-4"></i><span>hello@freshfruit.vn</span></li>
+          <li class="flex items-center gap-2"><i class="fas fa-clock text-primary w-4"></i><span>7:00 – 21:00, Thứ 2 – CN</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="border-t border-gray-800 py-4">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-gray-500">
+      <span>© 2024 FreshFruit. Bảo lưu mọi quyền.</span>
+      <div class="flex items-center gap-2">
+        <span class="bg-gray-700 px-2 py-0.5 rounded">VISA</span>
+        <span class="bg-gray-700 px-2 py-0.5 rounded">MasterCard</span>
+        <span class="bg-gray-700 px-2 py-0.5 rounded">MoMo</span>
+        <span class="bg-gray-700 px-2 py-0.5 rounded">ZaloPay</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- Toast -->
+<div id="toast" class="toast bg-primary text-white px-5 py-3 rounded-xl shadow-lg flex items-center gap-3">
+  <i class="fas fa-check-circle text-green-300"></i>
+  <span id="toastMsg">Thành công!</span>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/store.js"></script>
+<script>
+// ---- Init ----
+document.addEventListener('DOMContentLoaded', () => {
+  triggerConfetti();
+  loadOrderData();
+  renderSuggested();
+  updateHeaderCounts();
+});
+
+// ---- Load Order Data ----
+function loadOrderData() {
+  // Try URL param first
+  const urlParams = new URLSearchParams(window.location.search);
+  const orderId = urlParams.get('id');
+
+  const order = JSON.parse(localStorage.getItem('ff_last_order') || 'null');
+
+  const now = new Date();
+
+  // Order ID
+  const displayId = orderId || (order ? order.id : 'FF' + Date.now().toString().slice(-8));
+  document.getElementById('orderIdDisplay').textContent = `#${displayId}`;
+
+  // Date
+  const orderDate = order ? new Date(order.date) : now;
+  document.getElementById('orderDate').textContent = formatDate(orderDate);
+
+  // Payment
+  const payMap = { cod: '💵 Tiền mặt (COD)', bank: '🏦 Chuyển khoản', momo: '📱 MoMo', zalopay: '💙 ZaloPay' };
+  const payMethod = order ? order.paymentMethod : 'cod';
+  document.getElementById('orderPayment').textContent = payMap[payMethod] || 'COD';
+
+  // ETA
+  const etaMap = { express: 1, standard: 3, scheduled: 4 };
+  const etaHours = order ? (etaMap[order.shippingMethod] || 3) : 3;
+  const eta = new Date(now.getTime() + etaHours * 60 * 60 * 1000);
+  document.getElementById('orderETA').textContent = `${formatTime(eta)} hôm nay`;
+  document.getElementById('tlTime3').textContent = `Dự kiến ${formatTime(eta)}`;
+  document.getElementById('tlTime4').textContent = `Dự kiến sau ${formatTime(eta)}`;
+  document.getElementById('tlTime1').textContent = `Lúc ${formatTime(orderDate)}`;
+
+  // Address
+  if (order && order.customer) {
+    const c = order.customer;
+    document.getElementById('orderAddress').textContent = `${c.address}, ${c.district}, ${c.province}`;
+  }
+
+  // Items
+  if (order && order.items) {
+    const itemCount = order.items.reduce((s, i) => s + i.qty, 0);
+    document.getElementById('orderItemCount').textContent = `${itemCount} sản phẩm`;
+    document.getElementById('orderTotal').textContent = formatPrice(order.total);
+    renderOrderItems(order.items, order.total, order.subtotal, order.shipping, order.discount);
+  } else {
+    document.getElementById('orderItemCount').textContent = '–';
+    document.getElementById('orderTotal').textContent = '–';
+    document.getElementById('orderItemsSection').classList.add('hidden');
+  }
+}
+
+function renderOrderItems(items, total, subtotal, shipping, discount) {
+  const container = document.getElementById('orderItemsList');
+  container.innerHTML = items.map(item => `
+    <div class="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
+      <img src="${item.image}?w=100&h=100&fit=crop&auto=format&q=80" alt="${item.name}" class="w-12 h-12 rounded-lg object-cover shrink-0">
+      <div class="flex-1 min-w-0">
+        <p class="font-medium text-gray-800 text-sm line-clamp-1">${item.name}</p>
+        <p class="text-xs text-gray-400">${item.unit || 'kg'} × ${item.qty}</p>
+      </div>
+      <span class="font-bold text-gray-800 text-sm">${formatPrice(item.price * item.qty)}</span>
+    </div>
+  `).join('') + `
+    <div class="pt-3 space-y-1.5 text-sm">
+      <div class="flex justify-between text-gray-500"><span>Tạm tính:</span><span>${formatPrice(subtotal)}</span></div>
+      ${discount > 0 ? `<div class="flex justify-between text-green-600"><span>Giảm giá:</span><span>-${formatPrice(discount)}</span></div>` : ''}
+      <div class="flex justify-between text-gray-500"><span>Phí giao hàng:</span><span>${shipping === 0 ? 'Miễn phí' : formatPrice(shipping)}</span></div>
+      <div class="flex justify-between font-bold text-gray-800 text-base pt-1 border-t"><span>Tổng cộng:</span><span class="text-primary">${formatPrice(total)}</span></div>
+    </div>
+  `;
+}
+
+// ---- Suggested Products ----
+function renderSuggested() {
+  const container = document.getElementById('suggestedProducts');
+  let products = [];
+
+  // Try to get from PRODUCTS global (data.js)
+  if (typeof PRODUCTS !== 'undefined' && PRODUCTS.length) {
+    products = [...PRODUCTS].sort(() => Math.random() - 0.5).slice(0, 4);
+  } else {
+    // Fallback hardcoded suggestions
+    products = [
+      { id: 1, name: 'Táo Fuji Nhật Bản', price: 85000, unit: 'kg', badge: 'Bán chạy', image: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6' },
+      { id: 2, name: 'Cam Sành Vĩnh Long', price: 35000, unit: 'kg', badge: null, image: 'https://images.unsplash.com/photo-1582979512210-99b6a53386f9' },
+      { id: 3, name: 'Nho Xanh Không Hạt', price: 120000, unit: 'kg', badge: 'Mới', image: 'https://images.unsplash.com/photo-1537640538966-79f369143f8f' },
+      { id: 4, name: 'Dâu Tây Đà Lạt', price: 95000, unit: 'hộp 500g', badge: null, image: 'https://images.unsplash.com/photo-1464965911861-746a04b4bca6' },
+    ];
+  }
+
+  container.innerHTML = products.map(p => `
+    <div class="bg-white rounded-2xl shadow-sm overflow-hidden group hover:shadow-md transition-shadow">
+      <div class="relative overflow-hidden">
+        <img src="${p.image}?w=400&h=300&fit=crop&auto=format&q=80" alt="${p.name}" class="w-full h-36 object-cover group-hover:scale-105 transition-transform duration-300">
+        ${p.badge ? `<span class="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-medium">${p.badge}</span>` : ''}
+      </div>
+      <div class="p-3">
+        <a href="product-detail.html?slug=${p.slug || p.id}">
+          <h3 class="font-semibold text-gray-800 text-sm line-clamp-2 mb-1 leading-snug hover:text-primary transition-colors">${p.name}</h3>
+        </a>
+        <p class="text-xs text-gray-400 mb-2">${p.unit || 'kg'}</p>
+        <div class="flex items-center justify-between">
+          <span class="text-primary font-bold text-sm">${formatPrice(p.price)}</span>
+          <button onclick="quickAddToCart(${JSON.stringify(p).replace(/"/g, '&quot;')})" class="w-7 h-7 bg-primary rounded-full flex items-center justify-center text-white hover:bg-primary-dark transition-colors shadow-sm">
+            <i class="fas fa-plus text-xs"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function quickAddToCart(product) {
+  let cart = JSON.parse(localStorage.getItem('ff_cart') || '[]');
+  const existing = cart.find(i => i.id == product.id);
+  if (existing) { existing.qty++; } else { cart.push({ ...product, qty: 1 }); }
+  localStorage.setItem('ff_cart', JSON.stringify(cart));
+  updateHeaderCounts();
+  showToast(`Đã thêm "${product.name}" vào giỏ hàng!`);
+}
+
+// ---- Confetti ----
+function triggerConfetti() {
+  const colors = ['#2D7A3A','#F97316','#FFD700','#FF6B6B','#4ECDC4','#45B7D1','#96CEB4'];
+  const container = document.getElementById('confettiContainer');
+  for (let i = 0; i < 60; i++) {
+    setTimeout(() => {
+      const piece = document.createElement('div');
+      piece.className = 'confetti-piece';
+      piece.style.cssText = `
+        left: ${Math.random() * 100}vw;
+        top: -10px;
+        background: ${colors[Math.floor(Math.random() * colors.length)]};
+        width: ${Math.random() * 8 + 4}px;
+        height: ${Math.random() * 8 + 4}px;
+        border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
+        animation-duration: ${Math.random() * 1 + 1}s;
+        animation-delay: ${Math.random() * 0.5}s;
+      `;
+      container.appendChild(piece);
+      setTimeout(() => piece.remove(), 2000);
+    }, i * 30);
+  }
+}
+
+// ---- Actions ----
+function viewOrder() {
+  showToast('Tính năng xem đơn hàng sẽ sớm ra mắt!', 'info');
+}
+
+function printOrder() {
+  window.print();
+}
+
+function updateHeaderCounts() {
+  const cart = JSON.parse(localStorage.getItem('ff_cart') || '[]');
+  const total = cart.reduce((s, i) => s + i.qty, 0);
+  const el = document.getElementById('cartCount');
+  if (el) el.textContent = total;
+}
+
+// ---- Helpers ----
+function formatPrice(p) {
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p).replace('₫', 'đ');
+}
+
+function formatDate(d) {
+  return new Intl.DateTimeFormat('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(d);
+}
+
+function formatTime(d) {
+  return new Intl.DateTimeFormat('vi-VN', { hour: '2-digit', minute: '2-digit' }).format(d);
+}
+
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  const m = document.getElementById('toastMsg');
+  m.textContent = msg;
+  t.className = `toast ${type === 'info' ? 'bg-gray-700' : 'bg-primary'} text-white px-5 py-3 rounded-xl shadow-lg flex items-center gap-3`;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>
