@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FreshFruit – Trái Cây Tươi Ngon Giao Tận Nhà</title>
+  <meta name="description" content="FreshFruit – Cung cấp trái cây tươi ngon, an toàn, chất lượng cao. Giao hàng nhanh 1-2 giờ, freeship từ 300k. Hơn 500 loại trái cây Việt và nhập khẩu.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: { DEFAULT: '#2D7A3A', light: '#4CAF61', dark: '#1F5C29', 50: '#F0FDF4', 100: '#DCFCE7' },
+            accent:  { DEFAULT: '#F97316', light: '#FB923C' },
+          },
+          fontFamily: { sans: ['Be Vietnam Pro', 'sans-serif'] },
+        }
+      }
+    }
+  </script>
+  <style>
+    /* ── Utility ── */
+    .line-clamp-2 { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    ::-webkit-scrollbar { width:6px; height:6px; }
+    ::-webkit-scrollbar-track { background:#f1f1f1; }
+    ::-webkit-scrollbar-thumb { background:#2D7A3A; border-radius:3px; }
+
+    /* ── Toast ── */
+    .toast { position:fixed; bottom:24px; right:24px; z-index:9999; transform:translateY(100px); opacity:0; transition:all .3s ease; }
+    .toast.show { transform:translateY(0); opacity:1; }
+
+    /* ── Float animation ── */
+    @keyframes float { 0%,100%{ transform:translateY(0) rotate(0deg); } 50%{ transform:translateY(-14px) rotate(4deg); } }
+    @keyframes float2 { 0%,100%{ transform:translateY(0) rotate(0deg); } 50%{ transform:translateY(-10px) rotate(-5deg); } }
+    @keyframes float3 { 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-18px); } }
+    .float-1 { animation:float 4s ease-in-out infinite; }
+    .float-2 { animation:float2 5s ease-in-out infinite; }
+    .float-3 { animation:float3 3.5s ease-in-out infinite; }
+
+    /* ── Category scroll ── */
+    .category-scroll { scrollbar-width:none; -ms-overflow-style:none; }
+    .category-scroll::-webkit-scrollbar { display:none; }
+
+    /* ── Gradient text ── */
+    .gradient-text { background: linear-gradient(135deg,#2D7A3A,#4CAF61); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+
+    /* ── Hero wave ── */
+    .hero-section { background: linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 40%, #ffffff 100%); }
+
+    /* ── Tab active ── */
+    .tab-btn.active { background-color:#2D7A3A; color:#fff; }
+    .tab-btn { transition: all .2s; }
+
+    /* ── Product appear ── */
+    @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+    .fade-up { animation:fadeUp .4s ease forwards; }
+
+    /* ── Countdown box ── */
+    .countdown-box { background:rgba(255,255,255,.15); backdrop-filter:blur(4px); border:1px solid rgba(255,255,255,.3); }
+
+    /* ── Testimonial card ── */
+    .testimonial-card::before { content:'\201C'; position:absolute; top:-10px; left:20px; font-size:80px; color:#2D7A3A; opacity:.15; font-family:Georgia,serif; line-height:1; }
+
+    /* ── Scrollbar for testimonials ── */
+    .testimonial-track { scroll-snap-type:x mandatory; }
+    .testimonial-track > * { scroll-snap-align:start; }
+
+    /* ── Shimmer on hover ── */
+    .shimmer-hover { position:relative; overflow:hidden; }
+    .shimmer-hover::after { content:''; position:absolute; inset:0; background:linear-gradient(90deg, transparent 0%, rgba(255,255,255,.15) 50%, transparent 100%); transform:translateX(-100%); transition:transform .5s ease; }
+    .shimmer-hover:hover::after { transform:translateX(100%); }
+  </style>
+</head>
+<body class="font-sans bg-white text-gray-800 antialiased">
+
+<!-- ══════════════════════════════════════════════════════
+     HEADER
+══════════════════════════════════════════════════════ -->
+<header id="header" class="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm shadow-sm transition-all duration-300">
+  <div class="max-w-7xl mx-auto px-4">
+    <!-- Top bar -->
+    <div class="hidden md:flex items-center justify-between py-1.5 text-xs text-gray-500 border-b border-gray-100">
+      <span>🚚 Miễn phí giao hàng cho đơn từ 300.000đ</span>
+      <div class="flex items-center gap-4">
+        <span>📞 1800 6789</span>
+        <span>|</span>
+        <a href="#" class="hover:text-primary transition-colors">Theo dõi đơn hàng</a>
+      </div>
+    </div>
+    <!-- Main nav -->
+    <div class="flex items-center justify-between py-3 gap-4">
+      <!-- Logo -->
+      <a href="index.html" class="flex items-center gap-2 shrink-0">
+        <div class="w-9 h-9 bg-primary rounded-full flex items-center justify-center shadow-sm">
+          <span class="text-white text-lg">🍎</span>
+        </div>
+        <div>
+          <span class="text-primary font-bold text-xl leading-none">Fresh</span><span class="text-accent font-bold text-xl leading-none">Fruit</span>
+          <p class="text-xs text-gray-400 leading-none">Tươi ngon mỗi ngày</p>
+        </div>
+      </a>
+      <!-- Search -->
+      <div class="flex-1 max-w-xl hidden md:block">
+        <div class="relative">
+          <input type="text" placeholder="Tìm kiếm trái cây tươi ngon..." id="headerSearch"
+            class="w-full pl-4 pr-12 py-2.5 rounded-full border-2 border-gray-200 focus:border-primary outline-none text-sm transition-colors bg-gray-50 focus:bg-white"
+            oninput="liveSearch(this.value)">
+          <button class="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white hover:bg-primary-dark transition-colors">
+            <i class="fas fa-search text-xs"></i>
+          </button>
+        </div>
+      </div>
+      <!-- Actions -->
+      <div class="flex items-center gap-1 sm:gap-3">
+        <button onclick="toggleSearch()" class="md:hidden w-9 h-9 flex items-center justify-center text-gray-600 hover:text-primary">
+          <i class="fas fa-search"></i>
+        </button>
+        <a href="wishlist.html" class="hidden sm:flex w-9 h-9 items-center justify-center text-gray-600 hover:text-primary relative transition-colors">
+          <i class="fas fa-heart"></i>
+          <span id="wishlistCount" class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center hidden">0</span>
+        </a>
+        <a href="cart.html" class="relative flex items-center gap-2 bg-primary text-white px-3 py-2 rounded-full hover:bg-primary-dark transition-colors text-sm font-medium shadow-sm">
+          <i class="fas fa-shopping-basket"></i>
+          <span class="hidden sm:inline">Giỏ hàng</span>
+          <span id="cartCount" class="bg-accent text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">0</span>
+        </a>
+        <button onclick="toggleMobileMenu()" class="md:hidden w-9 h-9 flex items-center justify-center text-gray-600">
+          <i class="fas fa-bars" id="menuIcon"></i>
+        </button>
+      </div>
+    </div>
+    <!-- Desktop Nav -->
+    <nav class="hidden md:flex items-center gap-8 py-2 text-sm font-medium border-t border-gray-100">
+      <a href="index.html" class="text-primary border-b-2 border-primary pb-1">Trang chủ</a>
+      <a href="products.html" class="text-gray-600 hover:text-primary transition-colors pb-1">Sản phẩm</a>
+      <a href="products.html?cat=viet-nam" class="text-gray-600 hover:text-primary transition-colors pb-1">Danh mục</a>
+      <a href="products.html?promo=true" class="text-gray-600 hover:text-primary transition-colors pb-1 flex items-center gap-1">
+        Khuyến mãi <span class="bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">Hot</span>
+      </a>
+      <a href="#about" class="text-gray-600 hover:text-primary transition-colors pb-1">Giới thiệu</a>
+    </nav>
+  </div>
+  <!-- Mobile menu -->
+  <div id="mobileMenu" class="hidden md:hidden border-t bg-white shadow-lg">
+    <div class="px-4 py-3">
+      <input type="text" placeholder="Tìm kiếm trái cây..." class="w-full px-4 py-2.5 border-2 border-gray-200 rounded-full text-sm mb-3 outline-none focus:border-primary bg-gray-50">
+      <nav class="flex flex-col gap-0.5">
+        <a href="index.html" class="py-3 px-2 text-primary font-semibold border-b border-gray-100 flex items-center gap-2">🏠 Trang chủ</a>
+        <a href="products.html" class="py-3 px-2 text-gray-700 border-b border-gray-100 flex items-center gap-2 hover:text-primary">🛍️ Sản phẩm</a>
+        <a href="products.html?cat=viet-nam" class="py-3 px-2 text-gray-700 border-b border-gray-100 flex items-center gap-2 hover:text-primary">📂 Danh mục</a>
+        <a href="products.html?promo=true" class="py-3 px-2 text-gray-700 border-b border-gray-100 flex items-center gap-2 hover:text-primary">🔥 Khuyến mãi</a>
+        <a href="cart.html" class="py-3 px-2 text-gray-700 border-b border-gray-100 flex items-center gap-2 hover:text-primary">🛒 Giỏ hàng</a>
+        <a href="wishlist.html" class="py-3 px-2 text-gray-700 flex items-center gap-2 hover:text-primary">❤️ Yêu thích</a>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<main class="pt-36 md:pt-28">
+
+<!-- ══════════════════════════════════════════════════════
+     SECTION 1 · HERO BANNER
+══════════════════════════════════════════════════════ -->
+<section class="hero-section relative overflow-hidden min-h-[88vh] md:min-h-[82vh] flex items-center">
+  <!-- Blurred blob decorations -->
+  <div class="absolute -top-20 -left-20 w-80 h-80 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
+  <div class="absolute top-1/2 right-0 w-96 h-96 bg-accent/10 rounded-full blur-3xl pointer-events-none"></div>
+  <div class="absolute bottom-0 left-1/3 w-64 h-64 bg-primary/5 rounded-full blur-2xl pointer-events-none"></div>
+
+  <div class="max-w-7xl mx-auto px-4 py-16 md:py-20 w-full">
+    <div class="grid md:grid-cols-2 gap-10 items-center">
+      <!-- Left content -->
+      <div class="order-2 md:order-1 text-center md:text-left">
+        <!-- Badge -->
+        <div class="inline-flex items-center gap-2 bg-primary/10 text-primary font-semibold text-sm px-4 py-1.5 rounded-full mb-5">
+          <span class="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
+          Giao hàng trong 1-2 giờ ⚡
+        </div>
+
+        <!-- Headline -->
+        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-gray-900 leading-tight mb-5">
+          Trái cây <span class="gradient-text">tươi ngon</span>,<br>
+          <span class="text-accent">Giao tận nhà</span> bạn
+        </h1>
+
+        <!-- Subheadline -->
+        <p class="text-gray-500 text-base md:text-lg leading-relaxed mb-8 max-w-lg mx-auto md:mx-0">
+          Trái cây tuyển chọn mỗi ngày – tươi ngon, an toàn và chất lượng cao.
+          Giao hàng siêu nhanh trong <strong class="text-primary">1-2 giờ</strong>, miễn phí từ 300.000đ.
+        </p>
+
+        <!-- CTA Buttons -->
+        <div class="flex flex-col sm:flex-row gap-3 justify-center md:justify-start mb-10">
+          <a href="products.html" class="shimmer-hover inline-flex items-center justify-center gap-2 bg-primary text-white font-semibold px-7 py-3.5 rounded-full hover:bg-primary-dark transition-all shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5 active:scale-95">
+            <i class="fas fa-shopping-basket"></i>
+            Mua ngay
+          </a>
+          <a href="products.html" class="inline-flex items-center justify-center gap-2 border-2 border-primary text-primary font-semibold px-7 py-3.5 rounded-full hover:bg-primary hover:text-white transition-all hover:-translate-y-0.5">
+            <i class="fas fa-leaf"></i>
+            Xem sản phẩm
+          </a>
+        </div>
+
+        <!-- Stats row -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-lg mx-auto md:mx-0">
+          <div class="bg-white/70 backdrop-blur-sm rounded-2xl p-3 text-center shadow-sm border border-white">
+            <div class="text-xl font-bold text-primary">500+</div>
+            <div class="text-xs text-gray-500 leading-tight">Loại trái cây</div>
+          </div>
+          <div class="bg-white/70 backdrop-blur-sm rounded-2xl p-3 text-center shadow-sm border border-white">
+            <div class="text-xl font-bold text-primary">50K+</div>
+            <div class="text-xs text-gray-500 leading-tight">Khách hàng</div>
+          </div>
+          <div class="bg-white/70 backdrop-blur-sm rounded-2xl p-3 text-center shadow-sm border border-white">
+            <div class="text-xl font-bold text-primary">4.9⭐</div>
+            <div class="text-xs text-gray-500 leading-tight">Đánh giá</div>
+          </div>
+          <div class="bg-white/70 backdrop-blur-sm rounded-2xl p-3 text-center shadow-sm border border-white">
+            <div class="text-xl font-bold text-primary">1-2h</div>
+            <div class="text-xs text-gray-500 leading-tight">Giao hàng</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right image -->
+      <div class="order-1 md:order-2 relative flex justify-center md:justify-end">
+        <!-- Floating emoji decorations -->
+        <div class="absolute top-4 left-4 text-4xl float-1 select-none z-10">🍓</div>
+        <div class="absolute top-0 right-8 text-3xl float-2 select-none z-10" style="animation-delay:.8s">🍇</div>
+        <div class="absolute bottom-10 left-0 text-3xl float-3 select-none z-10" style="animation-delay:1.2s">🥭</div>
+        <div class="absolute bottom-4 right-4 text-2xl float-1 select-none z-10" style="animation-delay:.4s">🍊</div>
+        <div class="absolute top-1/2 left-[-10px] text-2xl float-2 select-none z-10" style="animation-delay:1.6s">🍋</div>
+
+        <!-- Main image -->
+        <div class="relative">
+          <div class="absolute inset-0 bg-primary/20 rounded-full blur-2xl scale-90"></div>
+          <img src="https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=700&h=600&fit=crop&auto=format&q=80"
+               alt="Trái cây tươi ngon FreshFruit"
+               class="relative w-full max-w-sm md:max-w-lg rounded-3xl shadow-2xl object-cover"
+               loading="eager">
+          <!-- Floating badge -->
+          <div class="absolute -bottom-4 -left-4 bg-white rounded-2xl shadow-xl p-3 flex items-center gap-2 border border-gray-100">
+            <div class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center text-xl">🚚</div>
+            <div>
+              <div class="text-xs text-gray-500">Giao hàng</div>
+              <div class="text-sm font-bold text-primary">Siêu nhanh 1-2h</div>
+            </div>
+          </div>
+          <div class="absolute -top-4 -right-4 bg-white rounded-2xl shadow-xl p-3 flex items-center gap-2 border border-gray-100">
+            <div class="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center text-xl">✅</div>
+            <div>
+              <div class="text-xs text-gray-500">Chứng nhận</div>
+              <div class="text-sm font-bold text-orange-600">VietGAP</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Wave divider -->
+  <div class="absolute bottom-0 left-0 right-0 pointer-events-none">
+    <svg viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" class="w-full h-12">
+      <path d="M0,40 C360,0 1080,80 1440,20 L1440,60 L0,60 Z" fill="#f9fafb"/>
+    </svg>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════
+     TRUST BAR
+══════════════════════════════════════════════════════ -->
+<section class="bg-gray-50 border-y border-gray-100 py-5">
+  <div class="max-w-7xl mx-auto px-4">
+    <div class="flex flex-wrap justify-center md:justify-between items-center gap-6 text-sm text-gray-600">
+      <div class="flex items-center gap-2"><i class="fas fa-leaf text-primary text-lg"></i><span>100% Tươi sạch, an toàn</span></div>
+      <div class="hidden md:block w-px h-5 bg-gray-200"></div>
+      <div class="flex items-center gap-2"><i class="fas fa-truck text-primary text-lg"></i><span>Giao hàng trong 1-2 giờ</span></div>
+      <div class="hidden md:block w-px h-5 bg-gray-200"></div>
+      <div class="flex items-center gap-2"><i class="fas fa-shield-alt text-primary text-lg"></i><span>Đổi trả miễn phí 24h</span></div>
+      <div class="hidden md:block w-px h-5 bg-gray-200"></div>
+      <div class="flex items-center gap-2"><i class="fas fa-headset text-primary text-lg"></i><span>Hỗ trợ 7:00–21:00</span></div>
+      <div class="hidden md:block w-px h-5 bg-gray-200"></div>
+      <div class="flex items-center gap-2"><i class="fas fa-credit-card text-primary text-lg"></i><span>Thanh toán đa dạng</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════
+     SECTION 2 · CATEGORIES
+══════════════════════════════════════════════════════ -->
+<section class="py-16 bg-gray-50">
+  <div class="max-w-7xl mx-auto px-4">
+    <!-- Section header -->
+    <div class="text-center mb-10">
+      <span class="inline-block bg-primary/10 text-primary font-semibold text-sm px-4 py-1.5 rounded-full mb-3">🗂️ Danh mục</span>
+      <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900 mb-3">Danh mục sản phẩm</h2>
+      <p class="text-gray-500 max-w-xl mx-auto">Khám phá hơn 500 loại trái cây tươi ngon từ khắp Việt Nam và các nước trên thế giới</p>
+    </div>
+
+    <!-- Category cards (scrollable on mobile) -->
+    <div class="flex gap-4 overflow-x-auto category-scroll pb-2 md:grid md:grid-cols-5">
+      <!-- Cards injected by JS -->
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════
+     SECTION 3 · FEATURED PRODUCTS
+══════════════════════════════════════════════════════ -->
+<section class="py-16 bg-white">
+  <div class="max-w-7xl mx-auto px-4">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+      <div>
+        <span class="inline-block bg-primary/10 text-primary font-semibold text-sm px-4 py-1.5 rounded-full mb-3">⭐ Nổi bật</span>
+        <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900">Sản phẩm nổi bật</h2>
+      </div>
+      <a href="products.html" class="inline-flex items-center gap-2 text-primary font-semibold hover:gap-3 transition-all text-sm shrink-0">
+        Xem tất cả <i class="fas fa-arrow-right"></i>
+      </a>
+    </div>
+
+    <!-- Filter tabs -->
+    <div class="flex gap-2 flex-wrap mb-8">
+      <button class="tab-btn active text-sm font-semibold px-5 py-2 rounded-full border-2 border-primary hover:bg-primary hover:text-white" data-tab="tat-ca">Tất cả</button>
+      <button class="tab-btn text-sm font-semibold px-5 py-2 rounded-full border-2 border-gray-200 text-gray-600 hover:border-primary hover:text-primary" data-tab="ban-chay">🔥 Bán chạy</button>
+      <button class="tab-btn text-sm font-semibold px-5 py-2 rounded-full border-2 border-gray-200 text-gray-600 hover:border-primary hover:text-primary" data-tab="viet-nam">🇻🇳 Trái cây Việt</button>
+      <button class="tab-btn text-sm font-semibold px-5 py-2 rounded-full border-2 border-gray-200 text-gray-600 hover:border-primary hover:text-primary" data-tab="nhap-khau">✈️ Nhập khẩu</button>
+      <button class="tab-btn text-sm font-semibold px-5 py-2 rounded-full border-2 border-gray-200 text-gray-600 hover:border-primary hover:text-primary" data-tab="moi">🆕 Mới</button>
+    </div>
+
+    <!-- Product grid -->
+    <div id="productGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+      <!-- Filled by JS -->
+    </div>
+
+    <!-- Show more -->
+    <div class="text-center mt-10" id="showMoreWrap">
+      <button id="showMoreBtn" onclick="showMoreProducts()"
+        class="shimmer-hover inline-flex items-center gap-2 border-2 border-primary text-primary font-semibold px-8 py-3 rounded-full hover:bg-primary hover:text-white transition-all hover:-translate-y-0.5">
+        <i class="fas fa-plus-circle"></i>
+        Xem thêm sản phẩm
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════
+     SECTION 4 · PROMO BANNER (Countdown)
+══════════════════════════════════════════════════════ -->
+<section class="py-16 relative overflow-hidden" style="background:linear-gradient(135deg,#1F5C29 0%,#2D7A3A 40%,#F97316 100%)">
+  <!-- Decorative circles -->
+  <div class="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+  <div class="absolute bottom-0 left-0 w-64 h-64 bg-black/10 rounded-full translate-y-1/2 -translate-x-1/2 pointer-events-none"></div>
+
+  <div class="max-w-7xl mx-auto px-4 relative">
+    <div class="grid md:grid-cols-2 gap-10 items-center">
+      <!-- Left: text + countdown -->
+      <div class="text-white text-center md:text-left">
+        <div class="inline-flex items-center gap-2 bg-white/20 text-white font-semibold text-sm px-4 py-1.5 rounded-full mb-5">
+          <i class="fas fa-fire text-orange-300 animate-pulse"></i>
+          Ưu đãi có hạn
+        </div>
+        <h2 class="text-3xl md:text-4xl lg:text-5xl font-extrabold mb-4 leading-tight">
+          🔥 Giảm đến <span class="text-yellow-300">30%</span><br>trái cây theo mùa!
+        </h2>
+        <p class="text-white/80 text-base md:text-lg mb-6 leading-relaxed">
+          Ưu đãi đặc biệt dành riêng cho trái cây theo mùa thu. Áp dụng đến <strong class="text-yellow-300">31/10/2024</strong>. Số lượng có hạn, nhanh tay kẻo lỡ!
+        </p>
+
+        <!-- Countdown timer -->
+        <div class="mb-8">
+          <p class="text-white/70 text-sm mb-3">⏰ Ưu đãi kết thúc sau:</p>
+          <div class="flex justify-center md:justify-start gap-3" id="countdown">
+            <div class="countdown-box rounded-2xl px-4 py-3 text-center min-w-[70px]">
+              <div id="cd-days" class="text-3xl font-extrabold text-white">00</div>
+              <div class="text-xs text-white/70 mt-0.5">Ngày</div>
+            </div>
+            <div class="flex items-center text-white/50 font-bold text-2xl pb-3">:</div>
+            <div class="countdown-box rounded-2xl px-4 py-3 text-center min-w-[70px]">
+              <div id="cd-hours" class="text-3xl font-extrabold text-white">00</div>
+              <div class="text-xs text-white/70 mt-0.5">Giờ</div>
+            </div>
+            <div class="flex items-center text-white/50 font-bold text-2xl pb-3">:</div>
+            <div class="countdown-box rounded-2xl px-4 py-3 text-center min-w-[70px]">
+              <div id="cd-mins" class="text-3xl font-extrabold text-white">00</div>
+              <div class="text-xs text-white/70 mt-0.5">Phút</div>
+            </div>
+            <div class="flex items-center text-white/50 font-bold text-2xl pb-3">:</div>
+            <div class="countdown-box rounded-2xl px-4 py-3 text-center min-w-[70px]">
+              <div id="cd-secs" class="text-3xl font-extrabold text-white tabular-nums">00</div>
+              <div class="text-xs text-white/70 mt-0.5">Giây</div>
+            </div>
+          </div>
+        </div>
+
+        <a href="products.html?promo=true" class="shimmer-hover inline-flex items-center gap-2 bg-white text-primary font-bold px-8 py-3.5 rounded-full hover:bg-yellow-300 hover:text-gray-900 transition-all shadow-xl hover:-translate-y-0.5">
+          <i class="fas fa-tag"></i>
+          Xem khuyến mãi ngay
+        </a>
+      </div>
+
+      <!-- Right: fruit images mosaic -->
+      <div class="relative hidden md:flex justify-center items-center gap-4">
+        <div class="flex flex-col gap-4">
+          <img src="https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=300&h=300&fit=crop&auto=format&q=80"
+               alt="Dâu tây" class="w-36 h-36 object-cover rounded-2xl shadow-xl float-1 border-4 border-white/20">
+          <img src="https://images.unsplash.com/photo-1582979512210-99b6a53386f9?w=300&h=300&fit=crop&auto=format&q=80"
+               alt="Cam" class="w-36 h-36 object-cover rounded-2xl shadow-xl float-2 border-4 border-white/20" style="animation-delay:.6s">
+        </div>
+        <div class="flex flex-col gap-4 mt-8">
+          <img src="https://images.unsplash.com/photo-1528821128474-27f963b062bf?w=300&h=300&fit=crop&auto=format&q=80"
+               alt="Cherry" class="w-40 h-40 object-cover rounded-2xl shadow-xl float-3 border-4 border-white/20">
+          <img src="https://images.unsplash.com/photo-1537640538966-79f369143f8f?w=300&h=300&fit=crop&auto=format&q=80"
+               alt="Nho" class="w-32 h-32 object-cover rounded-2xl shadow-xl float-1 border-4 border-white/20" style="animation-delay:1s">
+        </div>
+        <!-- Emoji overlays -->
+        <div class="absolute top-0 right-0 text-4xl float-2" style="animation-delay:.3s">🎉</div>
+        <div class="absolute bottom-0 left-0 text-3xl float-1" style="animation-delay:1.4s">🏷️</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════
+     SECTION 5 · WHY CHOOSE US
+══════════════════════════════════════════════════════ -->
+<section class="py-16 bg-gray-50" id="about">
+  <div class="max-w-7xl mx-auto px-4">
+    <div class="text-center mb-12">
+      <span class="inline-block bg-primary/10 text-primary font-semibold text-sm px-4 py-1.5 rounded-full mb-3">💚 Cam kết</span>
+      <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900 mb-3">Tại sao chọn FreshFruit?</h2>
+      <p class="text-gray-500 max-w-xl mx-auto">Chúng tôi không chỉ bán trái cây – chúng tôi mang đến trải nghiệm mua sắm tươi ngon, tiện lợi và tin cậy</p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <!-- Card 1 -->
+      <div class="group bg-white rounded-2xl p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-transparent hover:border-primary/30 text-center">
+        <div class="w-16 h-16 bg-green-50 group-hover:bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4 text-4xl transition-colors">🍎</div>
+        <h3 class="text-lg font-bold text-gray-900 mb-2">Tươi mỗi ngày</h3>
+        <p class="text-gray-500 text-sm leading-relaxed">Thu hoạch và nhập hàng mỗi sáng sớm, đảm bảo trái cây luôn tươi ngon nhất khi đến tay bạn.</p>
+        <div class="mt-4 h-0.5 bg-gradient-to-r from-transparent via-primary/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+      </div>
+      <!-- Card 2 -->
+      <div class="group bg-white rounded-2xl p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-transparent hover:border-primary/30 text-center">
+        <div class="w-16 h-16 bg-blue-50 group-hover:bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4 text-4xl transition-colors">🚚</div>
+        <h3 class="text-lg font-bold text-gray-900 mb-2">Giao nhanh 1-2h</h3>
+        <p class="text-gray-500 text-sm leading-relaxed">Giao hàng siêu tốc trong nội thành TP.HCM và Hà Nội. Miễn phí giao hàng cho đơn từ 300.000đ.</p>
+        <div class="mt-4 h-0.5 bg-gradient-to-r from-transparent via-primary/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+      </div>
+      <!-- Card 3 -->
+      <div class="group bg-white rounded-2xl p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-transparent hover:border-primary/30 text-center">
+        <div class="w-16 h-16 bg-yellow-50 group-hover:bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4 text-4xl transition-colors">🛡️</div>
+        <h3 class="text-lg font-bold text-gray-900 mb-2">Cam kết chất lượng</h3>
+        <p class="text-gray-500 text-sm leading-relaxed">100% trái cây đạt chuẩn VietGAP và GlobalGAP. Quy trình kiểm định nghiêm ngặt từ nguồn gốc đến tay bạn.</p>
+        <div class="mt-4 h-0.5 bg-gradient-to-r from-transparent via-primary/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+      </div>
+      <!-- Card 4 -->
+      <div class="group bg-white rounded-2xl p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-transparent hover:border-primary/30 text-center">
+        <div class="w-16 h-16 bg-red-50 group-hover:bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4 text-4xl transition-colors">💚</div>
+        <h3 class="text-lg font-bold text-gray-900 mb-2">Đổi trả dễ dàng</h3>
+        <p class="text-gray-500 text-sm leading-relaxed">Đổi trả miễn phí trong 24h nếu sản phẩm không đạt yêu cầu. Hoàn tiền 100% không cần lý do.</p>
+        <div class="mt-4 h-0.5 bg-gradient-to-r from-transparent via-primary/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+      </div>
+    </div>
+
+    <!-- Bottom stat banner -->
+    <div class="mt-12 bg-gradient-to-r from-primary to-primary-dark rounded-3xl p-8 md:p-10">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center text-white">
+        <div>
+          <div class="text-3xl md:text-4xl font-extrabold mb-1">8+</div>
+          <div class="text-white/70 text-sm">Năm kinh nghiệm</div>
+        </div>
+        <div>
+          <div class="text-3xl md:text-4xl font-extrabold mb-1">50K+</div>
+          <div class="text-white/70 text-sm">Khách hàng tin yêu</div>
+        </div>
+        <div>
+          <div class="text-3xl md:text-4xl font-extrabold mb-1">500+</div>
+          <div class="text-white/70 text-sm">Loại trái cây</div>
+        </div>
+        <div>
+          <div class="text-3xl md:text-4xl font-extrabold mb-1">99%</div>
+          <div class="text-white/70 text-sm">Hài lòng khách hàng</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════
+     SECTION 6 · SEASONAL PICKS (Mini Banner Row)
+══════════════════════════════════════════════════════ -->
+<section class="py-14 bg-white">
+  <div class="max-w-7xl mx-auto px-4">
+    <div class="grid md:grid-cols-2 gap-6">
+      <!-- Banner 1 -->
+      <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-green-700 to-green-500 p-8 flex items-center gap-6 group cursor-pointer" onclick="location.href='products.html?cat=viet-nam'">
+        <div class="flex-1 text-white z-10 relative">
+          <p class="text-white/70 text-sm font-medium mb-1">🇻🇳 Đặc sản quê hương</p>
+          <h3 class="text-2xl font-extrabold mb-2">Trái cây Việt Nam</h3>
+          <p class="text-white/80 text-sm mb-4">Xoài cát, dâu tây, thanh long, bơ... tươi ngon từ các vùng miền nổi tiếng.</p>
+          <span class="inline-flex items-center gap-1 text-sm font-semibold border-b-2 border-white/50 pb-0.5 hover:border-white transition-colors">Khám phá ngay <i class="fas fa-arrow-right text-xs"></i></span>
+        </div>
+        <img src="https://images.unsplash.com/photo-1601493700631-2b16ec4b4716?w=200&h=200&fit=crop&auto=format&q=80"
+             alt="Trái cây Việt Nam" class="w-24 h-24 md:w-32 md:h-32 object-cover rounded-2xl opacity-90 group-hover:scale-105 transition-transform duration-300 shrink-0 shadow-xl">
+        <div class="absolute -bottom-6 -right-6 w-32 h-32 bg-white/10 rounded-full pointer-events-none"></div>
+      </div>
+      <!-- Banner 2 -->
+      <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-orange-500 to-amber-400 p-8 flex items-center gap-6 group cursor-pointer" onclick="location.href='products.html?cat=nhap-khau'">
+        <div class="flex-1 text-white z-10 relative">
+          <p class="text-white/70 text-sm font-medium mb-1">✈️ Nhập khẩu chính hãng</p>
+          <h3 class="text-2xl font-extrabold mb-2">Trái cây nhập khẩu</h3>
+          <p class="text-white/80 text-sm mb-4">Táo Fuji, nho Mỹ, cherry, kiwi... chất lượng quốc tế, giá hợp lý.</p>
+          <span class="inline-flex items-center gap-1 text-sm font-semibold border-b-2 border-white/50 pb-0.5 hover:border-white transition-colors">Mua ngay <i class="fas fa-arrow-right text-xs"></i></span>
+        </div>
+        <img src="https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=200&h=200&fit=crop&auto=format&q=80"
+             alt="Trái cây nhập khẩu" class="w-24 h-24 md:w-32 md:h-32 object-cover rounded-2xl opacity-90 group-hover:scale-105 transition-transform duration-300 shrink-0 shadow-xl">
+        <div class="absolute -bottom-6 -right-6 w-32 h-32 bg-white/10 rounded-full pointer-events-none"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════
+     SECTION 7 · TESTIMONIALS
+══════════════════════════════════════════════════════ -->
+<section class="py-16 bg-primary/5">
+  <div class="max-w-7xl mx-auto px-4">
+    <div class="text-center mb-12">
+      <span class="inline-block bg-primary/10 text-primary font-semibold text-sm px-4 py-1.5 rounded-full mb-3">💬 Đánh giá</span>
+      <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900 mb-3">Khách hàng nói gì về chúng tôi?</h2>
+      <p class="text-gray-500 max-w-xl mx-auto">Hơn 50.000 khách hàng đã tin tưởng FreshFruit – cùng nghe chia sẻ của họ</p>
+      <!-- Stars -->
+      <div class="flex justify-center items-center gap-1 mt-4">
+        <i class="fas fa-star text-yellow-400 text-xl"></i>
+        <i class="fas fa-star text-yellow-400 text-xl"></i>
+        <i class="fas fa-star text-yellow-400 text-xl"></i>
+        <i class="fas fa-star text-yellow-400 text-xl"></i>
+        <i class="fas fa-star text-yellow-400 text-xl"></i>
+        <span class="ml-2 text-gray-700 font-bold">4.9/5</span>
+        <span class="text-gray-400 text-sm ml-1">(2.341 đánh giá)</span>
+      </div>
+    </div>
+
+    <div id="testimonialGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <!-- Filled by JS -->
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════
+     SECTION 8 · NEWSLETTER
+══════════════════════════════════════════════════════ -->
+<section class="py-16 relative overflow-hidden" style="background:linear-gradient(135deg,#2D7A3A 0%,#4CAF61 100%)">
+  <div class="absolute inset-0 pointer-events-none overflow-hidden">
+    <div class="absolute -top-16 -right-16 w-64 h-64 bg-white/10 rounded-full"></div>
+    <div class="absolute -bottom-10 -left-10 w-48 h-48 bg-black/10 rounded-full"></div>
+    <div class="absolute top-1/2 left-1/3 text-6xl opacity-10 select-none">🍓</div>
+    <div class="absolute top-1/4 right-1/4 text-5xl opacity-10 select-none">🍊</div>
+    <div class="absolute bottom-1/4 left-1/4 text-4xl opacity-10 select-none">🥭</div>
+  </div>
+
+  <div class="max-w-3xl mx-auto px-4 text-center relative">
+    <div class="inline-flex items-center gap-2 bg-white/20 text-white font-semibold text-sm px-4 py-1.5 rounded-full mb-5">
+      <i class="fas fa-envelope"></i>
+      Đặc quyền thành viên
+    </div>
+    <h2 class="text-3xl md:text-4xl font-extrabold text-white mb-3">Nhận ưu đãi độc quyền qua email</h2>
+    <p class="text-white/80 text-base md:text-lg mb-2">
+      Đăng ký ngay để nhận <strong class="text-yellow-300">mã giảm giá 20%</strong> cho đơn hàng đầu tiên!
+    </p>
+    <p class="text-white/60 text-sm mb-8">Cùng với tin tức mới nhất về trái cây theo mùa, công thức dinh dưỡng & ưu đãi hàng tuần.</p>
+
+    <!-- Subscriber count -->
+    <div class="flex justify-center items-center gap-3 mb-6">
+      <div class="flex -space-x-2">
+        <img src="https://i.pravatar.cc/40?img=1" class="w-8 h-8 rounded-full border-2 border-white" alt="">
+        <img src="https://i.pravatar.cc/40?img=3" class="w-8 h-8 rounded-full border-2 border-white" alt="">
+        <img src="https://i.pravatar.cc/40?img=5" class="w-8 h-8 rounded-full border-2 border-white" alt="">
+        <div class="w-8 h-8 rounded-full border-2 border-white bg-white/30 flex items-center justify-center text-xs font-bold text-white">+</div>
+      </div>
+      <span class="text-white/80 text-sm"><strong class="text-white">10.000+</strong> người đã đăng ký</span>
+    </div>
+
+    <!-- Form -->
+    <form id="newsletterForm" onsubmit="submitNewsletter(event)" class="flex flex-col sm:flex-row gap-3 max-w-xl mx-auto">
+      <input type="email" id="newsletterEmail" required placeholder="Nhập địa chỉ email của bạn..."
+        class="flex-1 px-5 py-3.5 rounded-full text-gray-800 text-sm outline-none focus:ring-2 focus:ring-yellow-300 placeholder-gray-400 bg-white shadow-lg">
+      <button type="submit" class="shimmer-hover bg-accent hover:bg-orange-600 text-white font-bold px-7 py-3.5 rounded-full transition-all shadow-lg hover:-translate-y-0.5 whitespace-nowrap">
+        <i class="fas fa-paper-plane mr-1"></i> Đăng ký ngay
+      </button>
+    </form>
+    <p class="text-white/50 text-xs mt-4">
+      <i class="fas fa-lock mr-1"></i>Chúng tôi tôn trọng quyền riêng tư của bạn. Hủy đăng ký bất cứ lúc nào.
+    </p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════
+     SECTION 9 · APP DOWNLOAD (Bonus)
+══════════════════════════════════════════════════════ -->
+<section class="py-16 bg-gray-50">
+  <div class="max-w-7xl mx-auto px-4">
+    <div class="bg-white rounded-3xl shadow-xl overflow-hidden">
+      <div class="grid md:grid-cols-2 items-center">
+        <div class="p-8 md:p-12">
+          <span class="inline-block bg-primary/10 text-primary font-semibold text-sm px-4 py-1.5 rounded-full mb-4">📱 Ứng dụng di động</span>
+          <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900 mb-3">Tải ứng dụng FreshFruit<br>Tiện lợi hơn mỗi ngày</h2>
+          <p class="text-gray-500 text-sm md:text-base leading-relaxed mb-6">
+            Đặt hàng chỉ với vài chạm, theo dõi đơn hàng realtime, nhận thông báo ưu đãi độc quyền. Ứng dụng FreshFruit – người bạn đồng hành mỗi bữa ăn.
+          </p>
+          <div class="flex flex-wrap gap-3">
+            <a href="#" class="flex items-center gap-2 bg-gray-900 text-white px-5 py-3 rounded-xl hover:bg-gray-700 transition-colors shadow">
+              <i class="fab fa-apple text-2xl"></i>
+              <div><div class="text-xs text-gray-400">Tải trên</div><div class="text-sm font-bold">App Store</div></div>
+            </a>
+            <a href="#" class="flex items-center gap-2 bg-gray-900 text-white px-5 py-3 rounded-xl hover:bg-gray-700 transition-colors shadow">
+              <i class="fab fa-google-play text-2xl text-green-400"></i>
+              <div><div class="text-xs text-gray-400">Tải trên</div><div class="text-sm font-bold">Google Play</div></div>
+            </a>
+          </div>
+        </div>
+        <div class="relative bg-gradient-to-br from-primary/5 to-primary/20 p-8 md:p-0 flex justify-center items-end overflow-hidden min-h-[220px]">
+          <img src="https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=500&h=400&fit=crop&auto=format&q=80"
+               alt="FreshFruit App" class="w-full max-w-xs md:max-w-sm object-cover rounded-t-3xl shadow-2xl md:mt-8">
+          <div class="absolute top-6 right-6 text-5xl float-1">📱</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ══════════════════════════════════════════════════════
+     FOOTER
+══════════════════════════════════════════════════════ -->
+<footer class="bg-gray-900 text-gray-300 mt-0">
+  <div class="max-w-7xl mx-auto px-4 py-12">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      <!-- Brand -->
+      <div class="lg:col-span-1">
+        <div class="flex items-center gap-2 mb-4">
+          <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center"><span class="text-white text-xl">🍎</span></div>
+          <div><span class="text-white font-bold text-xl">Fresh</span><span class="text-accent font-bold text-xl">Fruit</span></div>
+        </div>
+        <p class="text-sm text-gray-400 leading-relaxed mb-4">Cung cấp trái cây tươi ngon, an toàn, chất lượng cao trực tiếp từ vườn đến tay bạn.</p>
+        <div class="flex gap-3">
+          <a href="#" class="w-9 h-9 bg-blue-600 rounded-full flex items-center justify-center text-white hover:bg-blue-700 transition-colors"><i class="fab fa-facebook-f text-sm"></i></a>
+          <a href="#" class="w-9 h-9 bg-gradient-to-br from-purple-600 to-pink-500 rounded-full flex items-center justify-center text-white hover:opacity-90 transition-opacity"><i class="fab fa-instagram text-sm"></i></a>
+          <a href="#" class="w-9 h-9 bg-black rounded-full flex items-center justify-center text-white hover:bg-gray-800 transition-colors"><i class="fab fa-tiktok text-sm"></i></a>
+        </div>
+      </div>
+      <!-- Quick Links -->
+      <div>
+        <h4 class="text-white font-semibold mb-4">Liên kết nhanh</h4>
+        <ul class="space-y-2 text-sm">
+          <li><a href="index.html" class="hover:text-primary transition-colors">Trang chủ</a></li>
+          <li><a href="products.html" class="hover:text-primary transition-colors">Tất cả sản phẩm</a></li>
+          <li><a href="products.html?cat=viet-nam" class="hover:text-primary transition-colors">Trái cây Việt Nam</a></li>
+          <li><a href="products.html?cat=nhap-khau" class="hover:text-primary transition-colors">Trái cây nhập khẩu</a></li>
+          <li><a href="products.html?promo=true" class="hover:text-primary transition-colors">Khuyến mãi</a></li>
+        </ul>
+      </div>
+      <!-- Policy -->
+      <div>
+        <h4 class="text-white font-semibold mb-4">Chính sách</h4>
+        <ul class="space-y-2 text-sm">
+          <li><a href="#" class="hover:text-primary transition-colors">Chính sách mua hàng</a></li>
+          <li><a href="#" class="hover:text-primary transition-colors">Chính sách giao hàng</a></li>
+          <li><a href="#" class="hover:text-primary transition-colors">Chính sách đổi trả</a></li>
+          <li><a href="#" class="hover:text-primary transition-colors">Chính sách bảo mật</a></li>
+          <li><a href="#" class="hover:text-primary transition-colors">Điều khoản dịch vụ</a></li>
+        </ul>
+      </div>
+      <!-- Contact -->
+      <div>
+        <h4 class="text-white font-semibold mb-4">Liên hệ</h4>
+        <ul class="space-y-3 text-sm">
+          <li class="flex items-start gap-2"><i class="fas fa-map-marker-alt text-primary mt-0.5 w-4"></i><span>123 Đường Nguyễn Văn Linh, Quận 7, TP.HCM</span></li>
+          <li class="flex items-center gap-2"><i class="fas fa-phone text-primary w-4"></i><a href="tel:18006789" class="hover:text-primary">1800 6789</a></li>
+          <li class="flex items-center gap-2"><i class="fas fa-envelope text-primary w-4"></i><a href="mailto:hello@freshfruit.vn" class="hover:text-primary">hello@freshfruit.vn</a></li>
+          <li class="flex items-center gap-2"><i class="fas fa-clock text-primary w-4"></i><span>7:00 – 21:00, Thứ 2 – CN</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="border-t border-gray-800 py-4">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-gray-500">
+      <span>© 2024 FreshFruit. Bảo lưu mọi quyền.</span>
+      <div class="flex items-center gap-2">
+        <span>Thanh toán an toàn:</span>
+        <span class="bg-gray-700 px-2 py-0.5 rounded text-xs">VISA</span>
+        <span class="bg-gray-700 px-2 py-0.5 rounded text-xs">MasterCard</span>
+        <span class="bg-gray-700 px-2 py-0.5 rounded text-xs">MoMo</span>
+        <span class="bg-gray-700 px-2 py-0.5 rounded text-xs">ZaloPay</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- ══════════════════════════════════════════════════════
+     BACK TO TOP BUTTON
+══════════════════════════════════════════════════════ -->
+<button id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})"
+  class="fixed bottom-6 left-6 z-50 w-11 h-11 bg-primary text-white rounded-full shadow-lg flex items-center justify-center opacity-0 pointer-events-none transition-all duration-300 hover:bg-primary-dark hover:-translate-y-1"
+  title="Lên đầu trang">
+  <i class="fas fa-chevron-up"></i>
+</button>
+
+<!-- TOAST -->
+<div id="toast" class="toast bg-primary text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 min-w-[260px]">
+  <i class="fas fa-check-circle text-green-300 text-lg shrink-0"></i>
+  <span id="toastMsg">Đã thêm vào giỏ hàng!</span>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     SCRIPTS
+══════════════════════════════════════════════════════ -->
+<script src="js/data.js"></script>
+<script src="js/store.js"></script>
+<script>
+/* ─── 1. CATEGORY CARDS ───────────────────────────────── */
+(function renderCategories() {
+  const container = document.querySelector('.flex.gap-4.overflow-x-auto');
+  if (!container || typeof CATEGORIES === 'undefined') return;
+  container.innerHTML = CATEGORIES.map(cat => `
+    <a href="products.html?cat=${cat.id}"
+       class="flex-none w-44 md:w-auto group bg-white rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden border border-gray-100 cursor-pointer">
+      <div class="relative overflow-hidden">
+        <img src="${cat.image}" alt="${cat.name}" class="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-500">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+        <div class="absolute bottom-2 right-2 text-2xl">${cat.icon}</div>
+      </div>
+      <div class="p-4">
+        <h3 class="font-semibold text-gray-800 text-sm leading-snug group-hover:text-primary transition-colors mb-1">${cat.name}</h3>
+        <p class="text-xs text-gray-400">${cat.count} sản phẩm</p>
+      </div>
+    </a>
+  `).join('');
+})();
+
+/* ─── 2. FEATURED PRODUCTS ───────────────────────────── */
+let currentTab = 'tat-ca';
+let visibleCount = 8;
+const INITIAL_COUNT = 8;
+
+function getFilteredProducts() {
+  if (currentTab === 'tat-ca') return PRODUCTS;
+  if (currentTab === 'ban-chay') return PRODUCTS.filter(p => p.tags.includes('ban-chay'));
+  if (currentTab === 'viet-nam') return PRODUCTS.filter(p => p.category === 'viet-nam');
+  if (currentTab === 'nhap-khau') return PRODUCTS.filter(p => p.category === 'nhap-khau');
+  if (currentTab === 'moi') return PRODUCTS.filter(p => p.isNew);
+  return PRODUCTS;
+}
+
+function renderProducts() {
+  const grid = document.getElementById('productGrid');
+  const showMoreWrap = document.getElementById('showMoreWrap');
+  if (!grid) return;
+  const filtered = getFilteredProducts();
+  const toShow = filtered.slice(0, visibleCount);
+  grid.innerHTML = toShow.map((p, i) => {
+    const card = Store.renderProductCard(p);
+    // Wrap in fade-up container with delay
+    return `<div class="fade-up" style="animation-delay:${(i % 4) * 60}ms">${card}</div>`;
+  }).join('');
+  // Show/hide "Xem thêm"
+  if (showMoreWrap) {
+    showMoreWrap.classList.toggle('hidden', visibleCount >= filtered.length);
+  }
+}
+
+function showMoreProducts() {
+  visibleCount += 4;
+  renderProducts();
+}
+
+// Tab logic
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    currentTab = this.dataset.tab;
+    visibleCount = INITIAL_COUNT;
+    renderProducts();
+  });
+});
+
+// Initial render
+renderProducts();
+
+/* ─── 3. TESTIMONIALS ────────────────────────────────── */
+(function renderTestimonials() {
+  const grid = document.getElementById('testimonialGrid');
+  if (!grid || typeof TESTIMONIALS === 'undefined') return;
+  grid.innerHTML = TESTIMONIALS.map(t => {
+    const stars = Array.from({length: 5}, (_, i) =>
+      `<i class="fas fa-star ${i < t.rating ? 'text-yellow-400' : 'text-gray-200'} text-sm"></i>`
+    ).join('');
+    const dateStr = new Date(t.date).toLocaleDateString('vi-VN', {day:'2-digit',month:'2-digit',year:'numeric'});
+    return `
+      <div class="testimonial-card relative bg-white rounded-2xl p-6 shadow-sm hover:shadow-lg transition-shadow border border-gray-100 flex flex-col">
+        <div class="flex items-center gap-3 mb-4">
+          <img src="${t.avatar}" alt="${t.name}" class="w-12 h-12 rounded-full object-cover border-2 border-primary/20">
+          <div>
+            <div class="font-semibold text-gray-900 text-sm">${t.name}</div>
+            <div class="text-xs text-gray-400">${t.role}</div>
+          </div>
+        </div>
+        <div class="flex gap-0.5 mb-3">${stars}</div>
+        <p class="text-gray-600 text-sm leading-relaxed flex-1 italic">"${t.comment}"</p>
+        <div class="mt-4 pt-3 border-t border-gray-100 text-xs text-gray-400 flex items-center gap-1">
+          <i class="fas fa-calendar-alt w-3"></i>${dateStr}
+        </div>
+      </div>
+    `;
+  }).join('');
+})();
+
+/* ─── 4. COUNTDOWN TIMER ─────────────────────────────── */
+(function initCountdown() {
+  const target = new Date('2024-10-31T23:59:59');
+  function update() {
+    const diff = target - new Date();
+    if (diff <= 0) {
+      document.getElementById('cd-days').textContent = '00';
+      document.getElementById('cd-hours').textContent = '00';
+      document.getElementById('cd-mins').textContent = '00';
+      document.getElementById('cd-secs').textContent = '00';
+      return;
+    }
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    const pad = n => String(n).padStart(2, '0');
+    document.getElementById('cd-days').textContent = pad(d);
+    document.getElementById('cd-hours').textContent = pad(h);
+    document.getElementById('cd-mins').textContent = pad(m);
+    document.getElementById('cd-secs').textContent = pad(s);
+  }
+  update();
+  setInterval(update, 1000);
+})();
+
+/* ─── 5. NEWSLETTER SUBMIT ───────────────────────────── */
+function submitNewsletter(e) {
+  e.preventDefault();
+  const email = document.getElementById('newsletterEmail').value.trim();
+  if (!email) return;
+  Store.showToast('🎉 Đăng ký thành công! Mã giảm giá đã gửi về ' + email);
+  document.getElementById('newsletterForm').reset();
+}
+
+/* ─── 6. BACK TO TOP ─────────────────────────────────── */
+(function initBackToTop() {
+  const btn = document.getElementById('backToTop');
+  if (!btn) return;
+  window.addEventListener('scroll', () => {
+    const show = window.scrollY > 400;
+    btn.classList.toggle('opacity-0', !show);
+    btn.classList.toggle('pointer-events-none', !show);
+  }, { passive: true });
+})();
+
+/* ─── 7. HEADER SCROLL EFFECT ────────────────────────── */
+(function initHeaderScroll() {
+  const header = document.getElementById('header');
+  if (!header) return;
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 10) {
+      header.classList.add('shadow-md');
+      header.classList.remove('shadow-sm');
+    } else {
+      header.classList.remove('shadow-md');
+      header.classList.add('shadow-sm');
+    }
+  }, { passive: true });
+})();
+
+/* ─── 8. LIVE SEARCH (scroll to products) ────────────── */
+function liveSearch(q) {
+  if (q.length < 2) { renderProducts(); return; }
+  const lower = q.toLowerCase();
+  const results = PRODUCTS.filter(p =>
+    p.name.toLowerCase().includes(lower) ||
+    p.origin.toLowerCase().includes(lower) ||
+    p.category.toLowerCase().includes(lower)
+  );
+  const grid = document.getElementById('productGrid');
+  if (!grid) return;
+  if (results.length === 0) {
+    grid.innerHTML = `<div class="col-span-4 text-center py-16 text-gray-400">
+      <i class="fas fa-search text-4xl mb-3 block opacity-40"></i>
+      <p>Không tìm thấy sản phẩm phù hợp</p>
+    </div>`;
+    return;
+  }
+  grid.innerHTML = results.map(p => `<div class="fade-up">${Store.renderProductCard(p)}</div>`).join('');
+  // Scroll into view
+  document.getElementById('productGrid')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard – FreshFruit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: { DEFAULT: '#2D7A3A', light: '#4CAF61', dark: '#1F5C29', 50: '#F0FDF4', 100: '#DCFCE7' },
+            accent: { DEFAULT: '#F97316', light: '#FB923C' },
+            sidebar: '#1a2e1a',
+          },
+          fontFamily: { sans: ['Be Vietnam Pro', 'sans-serif'] },
+        }
+      }
+    }
+  </script>
+  <style>
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f1f1; }
+    ::-webkit-scrollbar-thumb { background: #2D7A3A; border-radius: 3px; }
+
+    .sidebar-bg { background-color: #1a2e1a; }
+    .sidebar-link { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-radius: 10px; color: #a7c4a7; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; margin-bottom: 4px; }
+    .sidebar-link:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    .sidebar-link.active { background: #2D7A3A; color: #fff; box-shadow: 0 4px 12px rgba(45,122,58,0.4); }
+    .sidebar-link .icon { width: 20px; text-align: center; font-size: 15px; }
+
+    .stat-card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); transition: transform 0.2s, box-shadow 0.2s; }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+
+    /* SVG chart animation */
+    .chart-bar { transition: height 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+    .badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+    .badge-yellow { background: #fef9c3; color: #854d0e; }
+    .badge-blue { background: #dbeafe; color: #1d4ed8; }
+    .badge-green { background: #dcfce7; color: #166534; }
+    .badge-red { background: #fee2e2; color: #991b1b; }
+
+    .page-section { display: none; }
+    .page-section.active { display: block; }
+
+    .toast { position: fixed; bottom: 24px; right: 24px; z-index: 9999; transform: translateY(100px); opacity: 0; transition: all 0.3s ease; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    @keyframes barGrow {
+      from { transform: scaleY(0); transform-origin: bottom; }
+      to { transform: scaleY(1); transform-origin: bottom; }
+    }
+    .bar-animate { animation: barGrow 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+    @keyframes lineDrawn {
+      from { stroke-dashoffset: 1200; }
+      to { stroke-dashoffset: 0; }
+    }
+    .line-animate { stroke-dasharray: 1200; stroke-dashoffset: 1200; animation: lineDrawn 1.5s ease forwards; }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in { animation: fadeInUp 0.4s ease both; }
+    .fade-in:nth-child(1) { animation-delay: 0.05s; }
+    .fade-in:nth-child(2) { animation-delay: 0.1s; }
+    .fade-in:nth-child(3) { animation-delay: 0.15s; }
+    .fade-in:nth-child(4) { animation-delay: 0.2s; }
+
+    .progress-bar { height: 6px; border-radius: 999px; background: #e5e7eb; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 999px; transition: width 1s ease; }
+
+    .notification-dot { width: 8px; height: 8px; background: #ef4444; border-radius: 50%; display: inline-block; }
+  </style>
+</head>
+<body class="font-sans bg-gray-100 flex h-screen overflow-hidden">
+
+  <!-- ===== OVERLAY (mobile) ===== -->
+  <div id="sidebarOverlay" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden" onclick="closeSidebar()"></div>
+
+  <!-- ===== LEFT SIDEBAR ===== -->
+  <aside id="sidebar" class="sidebar-bg fixed md:static left-0 top-0 h-screen w-60 flex flex-col z-40 transition-transform duration-300 -translate-x-full md:translate-x-0 shrink-0">
+    <!-- Logo -->
+    <div class="px-5 py-5 border-b border-white/10">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 bg-primary rounded-full flex items-center justify-center text-lg">🍎</div>
+        <div>
+          <p class="text-white font-bold text-base leading-none"><span class="text-green-300">Fresh</span><span class="text-orange-400">Fruit</span></p>
+          <p class="text-gray-400 text-xs mt-0.5">Admin Panel</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Nav -->
+    <nav class="flex-1 px-3 py-4 overflow-y-auto">
+      <p class="text-gray-500 text-xs font-semibold uppercase tracking-wider px-3 mb-2">Tổng quan</p>
+      <div class="sidebar-link active" onclick="switchPage('dashboard', this)">
+        <span class="icon">📊</span> Dashboard
+      </div>
+      <div class="sidebar-link" onclick="switchPage('orders', this)">
+        <span class="icon">📦</span> Đơn hàng
+        <span class="ml-auto bg-accent text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">5</span>
+      </div>
+
+      <p class="text-gray-500 text-xs font-semibold uppercase tracking-wider px-3 mt-4 mb-2">Quản lý</p>
+      <div class="sidebar-link" onclick="switchPage('products', this)">
+        <span class="icon">🛍️</span> Sản phẩm
+      </div>
+      <div class="sidebar-link" onclick="switchPage('categories', this)">
+        <span class="icon">📂</span> Danh mục
+      </div>
+      <div class="sidebar-link" onclick="switchPage('customers', this)">
+        <span class="icon">👥</span> Khách hàng
+      </div>
+      <div class="sidebar-link" onclick="switchPage('coupons', this)">
+        <span class="icon">🎟️</span> Mã giảm giá
+      </div>
+
+      <p class="text-gray-500 text-xs font-semibold uppercase tracking-wider px-3 mt-4 mb-2">Hệ thống</p>
+      <div class="sidebar-link" onclick="switchPage('settings', this)">
+        <span class="icon">⚙️</span> Cài đặt
+      </div>
+      <a href="index.html" class="sidebar-link text-emerald-400 hover:text-white mt-2 border border-emerald-800/40 rounded-xl bg-emerald-950/40">
+        <span class="icon">🌐</span> Xem website
+      </a>
+    </nav>
+
+    <!-- Admin user -->
+    <div class="px-3 py-4 border-t border-white/10">
+      <div class="flex items-center gap-3 px-2">
+        <div class="w-9 h-9 rounded-full bg-gradient-to-br from-green-400 to-primary flex items-center justify-center text-white font-bold text-sm shrink-0">NA</div>
+        <div class="flex-1 min-w-0">
+          <p class="text-white text-sm font-semibold truncate">Nguyễn Admin</p>
+          <p class="text-gray-400 text-xs truncate">admin@freshfruit.vn</p>
+        </div>
+        <button title="Đăng xuất" onclick="alert('Đăng xuất thành công!')" class="text-gray-400 hover:text-red-400 transition-colors">
+          <i class="fas fa-sign-out-alt text-sm"></i>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN AREA ===== -->
+  <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+    <!-- Top Bar -->
+    <header class="bg-white border-b border-gray-200 px-4 md:px-6 py-3 flex items-center gap-4 shrink-0">
+      <!-- Hamburger -->
+      <button onclick="toggleSidebar()" class="md:hidden w-9 h-9 flex items-center justify-center text-gray-600 hover:text-primary rounded-lg hover:bg-gray-100 transition-colors">
+        <i class="fas fa-bars"></i>
+      </button>
+
+      <!-- Page Title -->
+      <div class="hidden md:block">
+        <h1 class="text-gray-800 font-semibold text-base" id="topBarTitle">Dashboard</h1>
+        <p class="text-gray-400 text-xs" id="topBarDate">Thứ Tư, 23 tháng 9, 2026</p>
+      </div>
+
+      <!-- Search -->
+      <div class="flex-1 max-w-sm">
+        <div class="relative">
+          <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+          <input type="text" placeholder="Tìm kiếm đơn hàng, sản phẩm..." class="w-full pl-9 pr-4 py-2 text-sm rounded-lg border border-gray-200 focus:border-primary focus:outline-none transition-colors bg-gray-50">
+        </div>
+      </div>
+
+      <div class="ml-auto flex items-center gap-2 sm:gap-3">
+        <!-- Notifications -->
+        <div class="relative">
+          <button class="w-9 h-9 flex items-center justify-center text-gray-500 hover:text-primary rounded-lg hover:bg-gray-100 transition-colors" onclick="toggleNotif()">
+            <i class="fas fa-bell"></i>
+            <span class="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">3</span>
+          </button>
+          <!-- Notification Dropdown -->
+          <div id="notifDropdown" class="hidden absolute right-0 top-12 w-80 bg-white rounded-xl shadow-xl border border-gray-100 z-50">
+            <div class="px-4 py-3 border-b border-gray-100 flex justify-between items-center">
+              <h3 class="font-semibold text-gray-800 text-sm">Thông báo</h3>
+              <span class="text-xs text-primary cursor-pointer hover:underline">Đánh dấu tất cả đã đọc</span>
+            </div>
+            <div class="max-h-64 overflow-y-auto divide-y divide-gray-50">
+              <div class="px-4 py-3 hover:bg-gray-50 cursor-pointer flex gap-3">
+                <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center shrink-0 text-sm">⚠️</div>
+                <div>
+                  <p class="text-sm text-gray-700 font-medium">Sản phẩm sắp hết hàng</p>
+                  <p class="text-xs text-gray-400">Sầu riêng Ri6 còn 3 sản phẩm · 15 phút trước</p>
+                </div>
+              </div>
+              <div class="px-4 py-3 hover:bg-gray-50 cursor-pointer flex gap-3">
+                <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center shrink-0 text-sm">📦</div>
+                <div>
+                  <p class="text-sm text-gray-700 font-medium">Đơn hàng mới #FF2847</p>
+                  <p class="text-xs text-gray-400">Trần Thị Lan đặt 2 sản phẩm · 32 phút trước</p>
+                </div>
+              </div>
+              <div class="px-4 py-3 hover:bg-gray-50 cursor-pointer flex gap-3">
+                <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center shrink-0 text-sm">💰</div>
+                <div>
+                  <p class="text-sm text-gray-700 font-medium">Doanh thu tháng đạt mục tiêu</p>
+                  <p class="text-xs text-gray-400">Tháng 9/2026 đạt 125 triệu đ · 1 giờ trước</p>
+                </div>
+              </div>
+            </div>
+            <div class="px-4 py-2 border-t border-gray-100 text-center">
+              <span class="text-xs text-primary cursor-pointer hover:underline">Xem tất cả thông báo</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Avatar -->
+        <div class="w-9 h-9 rounded-full bg-gradient-to-br from-green-400 to-primary flex items-center justify-center text-white font-bold text-sm cursor-pointer">NA</div>
+      </div>
+    </header>
+
+    <!-- Content Scrollable Area -->
+    <main class="flex-1 overflow-y-auto p-4 md:p-6">
+
+      <!-- ===== DASHBOARD PAGE ===== -->
+      <div id="page-dashboard" class="page-section active">
+
+        <!-- Welcome -->
+        <div class="mb-6">
+          <h2 class="text-xl font-bold text-gray-800">Xin chào, Nguyễn Admin! 👋</h2>
+          <p class="text-gray-500 text-sm mt-0.5">Đây là tổng quan hoạt động kinh doanh hôm nay, 23/09/2026.</p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+          <!-- Revenue -->
+          <div class="stat-card fade-in">
+            <div class="flex items-start justify-between mb-3">
+              <div class="w-11 h-11 rounded-xl bg-green-100 flex items-center justify-center text-xl">💰</div>
+              <span class="text-xs font-semibold text-green-600 bg-green-100 px-2 py-0.5 rounded-full flex items-center gap-1">
+                <i class="fas fa-arrow-up text-xs"></i> 12.5%
+              </span>
+            </div>
+            <p class="text-2xl font-bold text-gray-800">125,450,000<span class="text-base font-medium text-gray-400">đ</span></p>
+            <p class="text-sm text-gray-500 mt-1">Tổng doanh thu tháng này</p>
+            <p class="text-xs text-gray-400 mt-2">So với tháng trước: <span class="text-green-600 font-medium">+13,950,000đ</span></p>
+          </div>
+          <!-- Orders today -->
+          <div class="stat-card fade-in">
+            <div class="flex items-start justify-between mb-3">
+              <div class="w-11 h-11 rounded-xl bg-blue-100 flex items-center justify-center text-xl">📦</div>
+              <span class="text-xs font-semibold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full flex items-center gap-1">
+                <i class="fas fa-arrow-up text-xs"></i> 8.3%
+              </span>
+            </div>
+            <p class="text-2xl font-bold text-gray-800">47</p>
+            <p class="text-sm text-gray-500 mt-1">Đơn hàng hôm nay</p>
+            <p class="text-xs text-gray-400 mt-2">Đang chờ xử lý: <span class="text-orange-600 font-medium">5 đơn</span></p>
+          </div>
+          <!-- Products -->
+          <div class="stat-card fade-in">
+            <div class="flex items-start justify-between mb-3">
+              <div class="w-11 h-11 rounded-xl bg-orange-100 flex items-center justify-center text-xl">🛍️</div>
+              <span class="text-xs font-semibold text-orange-600 bg-orange-100 px-2 py-0.5 rounded-full flex items-center gap-1">
+                <i class="fas fa-exclamation-triangle text-xs"></i> 2 hết
+              </span>
+            </div>
+            <p class="text-2xl font-bold text-gray-800">14</p>
+            <p class="text-sm text-gray-500 mt-1">Tổng sản phẩm</p>
+            <p class="text-xs text-gray-400 mt-2">Sắp hết hàng: <span class="text-red-600 font-medium">2 sản phẩm</span></p>
+          </div>
+          <!-- New customers -->
+          <div class="stat-card fade-in">
+            <div class="flex items-start justify-between mb-3">
+              <div class="w-11 h-11 rounded-xl bg-purple-100 flex items-center justify-center text-xl">👥</div>
+              <span class="text-xs font-semibold text-purple-600 bg-purple-100 px-2 py-0.5 rounded-full flex items-center gap-1">
+                <i class="fas fa-arrow-up text-xs"></i> 15.2%
+              </span>
+            </div>
+            <p class="text-2xl font-bold text-gray-800">23</p>
+            <p class="text-sm text-gray-500 mt-1">Khách hàng mới tháng này</p>
+            <p class="text-xs text-gray-400 mt-2">Tổng khách hàng: <span class="text-purple-600 font-medium">1,248 người</span></p>
+          </div>
+        </div>
+
+        <!-- Revenue Chart -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-6">
+          <div class="flex items-center justify-between mb-5">
+            <div>
+              <h3 class="font-bold text-gray-800">Doanh thu 7 ngày qua</h3>
+              <p class="text-xs text-gray-400 mt-0.5">Tổng: 28,750,000đ | Trung bình/ngày: 4,107,143đ</p>
+            </div>
+            <div class="flex gap-2">
+              <button class="text-xs px-3 py-1.5 bg-primary text-white rounded-lg font-medium">7 ngày</button>
+              <button class="text-xs px-3 py-1.5 text-gray-500 hover:bg-gray-100 rounded-lg font-medium">30 ngày</button>
+              <button class="text-xs px-3 py-1.5 text-gray-500 hover:bg-gray-100 rounded-lg font-medium">3 tháng</button>
+            </div>
+          </div>
+
+          <!-- SVG Bar Chart -->
+          <div class="relative" style="height: 200px;">
+            <svg viewBox="0 0 700 200" preserveAspectRatio="none" class="w-full h-full" id="revenueChart">
+              <!-- Grid lines -->
+              <line x1="0" y1="20" x2="700" y2="20" stroke="#f3f4f6" stroke-width="1"/>
+              <line x1="0" y1="60" x2="700" y2="60" stroke="#f3f4f6" stroke-width="1"/>
+              <line x1="0" y1="100" x2="700" y2="100" stroke="#f3f4f6" stroke-width="1"/>
+              <line x1="0" y1="140" x2="700" y2="140" stroke="#f3f4f6" stroke-width="1"/>
+              <line x1="0" y1="180" x2="700" y2="180" stroke="#f3f4f6" stroke-width="1"/>
+
+              <!-- Y-axis labels -->
+              <text x="0" y="18" font-size="9" fill="#9ca3af">6tr</text>
+              <text x="0" y="58" font-size="9" fill="#9ca3af">4.5tr</text>
+              <text x="0" y="98" font-size="9" fill="#9ca3af">3tr</text>
+              <text x="0" y="138" font-size="9" fill="#9ca3af">1.5tr</text>
+
+              <!-- Bars: 7 days. Max value = 6,200,000. Chart height = 160px (20 to 180). -->
+              <!-- Thứ 4, 17/9: 3,200,000 → height = 3.2/6.2 * 160 = 82.6 → y = 180 - 82.6 = 97.4 -->
+              <rect class="bar-animate" x="50" y="97" width="60" height="83" rx="6" fill="#2D7A3A" opacity="0.85" style="animation-delay:0.1s"/>
+              <!-- Thứ 5, 18/9: 4,100,000 → 105.8 → y=74.2 -->
+              <rect class="bar-animate" x="150" y="74" width="60" height="106" rx="6" fill="#2D7A3A" opacity="0.85" style="animation-delay:0.2s"/>
+              <!-- Thứ 6, 19/9: 5,800,000 → 149.7 → y=30.3 -->
+              <rect class="bar-animate" x="250" y="30" width="60" height="150" rx="6" fill="#2D7A3A" opacity="0.9" style="animation-delay:0.3s"/>
+              <!-- Thứ 7, 20/9: 6,200,000 → 160 → y=20 (max) -->
+              <rect class="bar-animate" x="350" y="20" width="60" height="160" rx="6" fill="#F97316" opacity="0.9" style="animation-delay:0.4s"/>
+              <!-- CN, 21/9: 4,800,000 → 123.9 → y=56.1 -->
+              <rect class="bar-animate" x="450" y="56" width="60" height="124" rx="6" fill="#2D7A3A" opacity="0.85" style="animation-delay:0.5s"/>
+              <!-- Thứ 2, 22/9: 2,700,000 → 69.7 → y=110.3 -->
+              <rect class="bar-animate" x="550" y="110" width="60" height="70" rx="6" fill="#2D7A3A" opacity="0.85" style="animation-delay:0.6s"/>
+              <!-- Thứ 3, 23/9: 1,950,000 (hôm nay, chưa xong) → 50.3 → y=129.7 -->
+              <rect class="bar-animate" x="650" y="130" width="60" height="50" rx="6" fill="#4CAF61" opacity="0.7" style="animation-delay:0.7s"/>
+
+              <!-- Value labels on top of bars -->
+              <text x="80" y="91" text-anchor="middle" font-size="8" fill="#374151" font-weight="600">3.2tr</text>
+              <text x="180" y="68" text-anchor="middle" font-size="8" fill="#374151" font-weight="600">4.1tr</text>
+              <text x="280" y="24" text-anchor="middle" font-size="8" fill="#374151" font-weight="600">5.8tr</text>
+              <text x="380" y="14" text-anchor="middle" font-size="8" fill="#F97316" font-weight="700">6.2tr ★</text>
+              <text x="480" y="50" text-anchor="middle" font-size="8" fill="#374151" font-weight="600">4.8tr</text>
+              <text x="580" y="104" text-anchor="middle" font-size="8" fill="#374151" font-weight="600">2.7tr</text>
+              <text x="680" y="124" text-anchor="middle" font-size="8" fill="#2D7A3A" font-weight="600">1.95tr</text>
+
+              <!-- X-axis labels -->
+              <text x="80" y="196" text-anchor="middle" font-size="9" fill="#6b7280">T4/17</text>
+              <text x="180" y="196" text-anchor="middle" font-size="9" fill="#6b7280">T5/18</text>
+              <text x="280" y="196" text-anchor="middle" font-size="9" fill="#6b7280">T6/19</text>
+              <text x="380" y="196" text-anchor="middle" font-size="9" fill="#F97316" font-weight="700">T7/20</text>
+              <text x="480" y="196" text-anchor="middle" font-size="9" fill="#6b7280">CN/21</text>
+              <text x="580" y="196" text-anchor="middle" font-size="9" fill="#6b7280">T2/22</text>
+              <text x="680" y="196" text-anchor="middle" font-size="9" fill="#2D7A3A" font-weight="700">T3/23*</text>
+            </svg>
+          </div>
+
+          <div class="flex items-center gap-4 mt-2">
+            <div class="flex items-center gap-1.5 text-xs text-gray-500">
+              <div class="w-3 h-3 rounded bg-primary"></div> Doanh thu thực
+            </div>
+            <div class="flex items-center gap-1.5 text-xs text-gray-500">
+              <div class="w-3 h-3 rounded bg-accent"></div> Ngày cao nhất
+            </div>
+            <div class="flex items-center gap-1.5 text-xs text-gray-500">
+              <div class="w-3 h-3 rounded bg-green-300"></div> Hôm nay (đang cập nhật)
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Two Columns -->
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
+
+          <!-- Recent Orders Table (2/3) -->
+          <div class="xl:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-bold text-gray-800">Đơn hàng gần đây</h3>
+              <button onclick="switchPage('orders', document.querySelector('[data-page=orders]'))" class="text-xs text-primary font-medium hover:underline">Xem tất cả →</button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="text-xs text-gray-400 uppercase border-b border-gray-100">
+                    <th class="pb-2 text-left font-semibold">Mã đơn</th>
+                    <th class="pb-2 text-left font-semibold">Khách hàng</th>
+                    <th class="pb-2 text-left font-semibold hidden md:table-cell">Sản phẩm</th>
+                    <th class="pb-2 text-right font-semibold">Tổng tiền</th>
+                    <th class="pb-2 text-center font-semibold">Trạng thái</th>
+                    <th class="pb-2 text-right font-semibold hidden sm:table-cell">Thời gian</th>
+                    <th class="pb-2"></th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50">
+                  <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="py-3 font-mono text-xs text-primary font-semibold">#FF2847</td>
+                    <td class="py-3">
+                      <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-xs font-bold text-blue-600">TL</div>
+                        <span class="font-medium text-gray-700 whitespace-nowrap">Trần Thị Lan</span>
+                      </div>
+                    </td>
+                    <td class="py-3 text-gray-500 hidden md:table-cell text-xs">Táo Fuji, Nho xanh</td>
+                    <td class="py-3 text-right font-semibold text-gray-800 whitespace-nowrap">285,000đ</td>
+                    <td class="py-3 text-center"><span class="badge badge-yellow">Chờ xác nhận</span></td>
+                    <td class="py-3 text-right text-gray-400 text-xs hidden sm:table-cell whitespace-nowrap">32 phút trước</td>
+                    <td class="py-3 text-right">
+                      <div class="flex justify-end gap-1">
+                        <button class="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-primary hover:bg-green-50 rounded-lg transition-colors" title="Xem"><i class="fas fa-eye text-xs"></i></button>
+                        <button class="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors" title="Sửa"><i class="fas fa-pen text-xs"></i></button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="py-3 font-mono text-xs text-primary font-semibold">#FF2846</td>
+                    <td class="py-3">
+                      <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 rounded-full bg-purple-100 flex items-center justify-center text-xs font-bold text-purple-600">PN</div>
+                        <span class="font-medium text-gray-700 whitespace-nowrap">Phạm Văn Nam</span>
+                      </div>
+                    </td>
+                    <td class="py-3 text-gray-500 hidden md:table-cell text-xs">Sầu riêng Ri6, Bơ 034</td>
+                    <td class="py-3 text-right font-semibold text-gray-800 whitespace-nowrap">520,000đ</td>
+                    <td class="py-3 text-center"><span class="badge badge-blue">Đang giao</span></td>
+                    <td class="py-3 text-right text-gray-400 text-xs hidden sm:table-cell whitespace-nowrap">1 giờ trước</td>
+                    <td class="py-3 text-right">
+                      <div class="flex justify-end gap-1">
+                        <button class="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-primary hover:bg-green-50 rounded-lg transition-colors"><i class="fas fa-eye text-xs"></i></button>
+                        <button class="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"><i class="fas fa-pen text-xs"></i></button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="py-3 font-mono text-xs text-primary font-semibold">#FF2845</td>
+                    <td class="py-3">
+                      <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 rounded-full bg-green-100 flex items-center justify-center text-xs font-bold text-green-600">NH</div>
+                        <span class="font-medium text-gray-700 whitespace-nowrap">Nguyễn Thị Hoa</span>
+                      </div>
+                    </td>
+                    <td class="py-3 text-gray-500 hidden md:table-cell text-xs">Cam Úc, Kiwi New Zealand</td>
+                    <td class="py-3 text-right font-semibold text-gray-800 whitespace-nowrap">345,000đ</td>
+                    <td class="py-3 text-center"><span class="badge badge-green">Hoàn thành</span></td>
+                    <td class="py-3 text-right text-gray-400 text-xs hidden sm:table-cell whitespace-nowrap">2 giờ trước</td>
+                    <td class="py-3 text-right">
+                      <div class="flex justify-end gap-1">
+                        <button class="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-primary hover:bg-green-50 rounded-lg transition-colors"><i class="fas fa-eye text-xs"></i></button>
+                        <button class="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"><i class="fas fa-pen text-xs"></i></button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="py-3 font-mono text-xs text-primary font-semibold">#FF2844</td>
+                    <td class="py-3">
+                      <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 rounded-full bg-red-100 flex items-center justify-center text-xs font-bold text-red-600">LT</div>
+                        <span class="font-medium text-gray-700 whitespace-nowrap">Lê Minh Tuấn</span>
+                      </div>
+                    </td>
+                    <td class="py-3 text-gray-500 hidden md:table-cell text-xs">Xoài cát Hoà Lộc</td>
+                    <td class="py-3 text-right font-semibold text-gray-800 whitespace-nowrap">180,000đ</td>
+                    <td class="py-3 text-center"><span class="badge badge-red">Đã hủy</span></td>
+                    <td class="py-3 text-right text-gray-400 text-xs hidden sm:table-cell whitespace-nowrap">3 giờ trước</td>
+                    <td class="py-3 text-right">
+                      <div class="flex justify-end gap-1">
+                        <button class="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-primary hover:bg-green-50 rounded-lg transition-colors"><i class="fas fa-eye text-xs"></i></button>
+                        <button class="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"><i class="fas fa-pen text-xs"></i></button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="py-3 font-mono text-xs text-primary font-semibold">#FF2843</td>
+                    <td class="py-3">
+                      <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 rounded-full bg-yellow-100 flex items-center justify-center text-xs font-bold text-yellow-700">VD</div>
+                        <span class="font-medium text-gray-700 whitespace-nowrap">Võ Thị Dung</span>
+                      </div>
+                    </td>
+                    <td class="py-3 text-gray-500 hidden md:table-cell text-xs">Cherry Mỹ, Dâu tây Đà Lạt</td>
+                    <td class="py-3 text-right font-semibold text-gray-800 whitespace-nowrap">480,000đ</td>
+                    <td class="py-3 text-center"><span class="badge badge-green">Hoàn thành</span></td>
+                    <td class="py-3 text-right text-gray-400 text-xs hidden sm:table-cell whitespace-nowrap">5 giờ trước</td>
+                    <td class="py-3 text-right">
+                      <div class="flex justify-end gap-1">
+                        <button class="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-primary hover:bg-green-50 rounded-lg transition-colors"><i class="fas fa-eye text-xs"></i></button>
+                        <button class="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"><i class="fas fa-pen text-xs"></i></button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="py-3 font-mono text-xs text-primary font-semibold">#FF2842</td>
+                    <td class="py-3">
+                      <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-bold text-indigo-600">HA</div>
+                        <span class="font-medium text-gray-700 whitespace-nowrap">Hoàng Văn An</span>
+                      </div>
+                    </td>
+                    <td class="py-3 text-gray-500 hidden md:table-cell text-xs">Nho đen Mỹ, Lê Hàn Quốc</td>
+                    <td class="py-3 text-right font-semibold text-gray-800 whitespace-nowrap">390,000đ</td>
+                    <td class="py-3 text-center"><span class="badge badge-blue">Đang giao</span></td>
+                    <td class="py-3 text-right text-gray-400 text-xs hidden sm:table-cell whitespace-nowrap">7 giờ trước</td>
+                    <td class="py-3 text-right">
+                      <div class="flex justify-end gap-1">
+                        <button class="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-primary hover:bg-green-50 rounded-lg transition-colors"><i class="fas fa-eye text-xs"></i></button>
+                        <button class="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"><i class="fas fa-pen text-xs"></i></button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="py-3 font-mono text-xs text-primary font-semibold">#FF2841</td>
+                    <td class="py-3">
+                      <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 rounded-full bg-pink-100 flex items-center justify-center text-xs font-bold text-pink-600">MT</div>
+                        <span class="font-medium text-gray-700 whitespace-nowrap">Mai Thị Thu</span>
+                      </div>
+                    </td>
+                    <td class="py-3 text-gray-500 hidden md:table-cell text-xs">Táo Fuji, Cam Úc, Kiwi</td>
+                    <td class="py-3 text-right font-semibold text-gray-800 whitespace-nowrap">620,000đ</td>
+                    <td class="py-3 text-center"><span class="badge badge-yellow">Chờ xác nhận</span></td>
+                    <td class="py-3 text-right text-gray-400 text-xs hidden sm:table-cell whitespace-nowrap">Hôm qua</td>
+                    <td class="py-3 text-right">
+                      <div class="flex justify-end gap-1">
+                        <button class="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-primary hover:bg-green-50 rounded-lg transition-colors"><i class="fas fa-eye text-xs"></i></button>
+                        <button class="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"><i class="fas fa-pen text-xs"></i></button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Top Products (1/3) -->
+          <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-bold text-gray-800">Sản phẩm bán chạy</h3>
+              <button onclick="switchPage('products', null)" class="text-xs text-primary font-medium hover:underline">Quản lý →</button>
+            </div>
+            <div class="space-y-4" id="topProductsList">
+              <!-- Products rendered by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom row: Alerts + Quick Actions -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+          <!-- Low Stock Alerts -->
+          <div class="bg-white rounded-2xl shadow-sm border border-orange-100 p-5">
+            <div class="flex items-center gap-2 mb-4">
+              <div class="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center text-base">⚠️</div>
+              <h3 class="font-bold text-gray-800">Thông báo quan trọng</h3>
+            </div>
+            <div class="space-y-3">
+              <div class="flex items-center gap-3 p-3 bg-orange-50 rounded-xl border border-orange-100">
+                <img src="https://images.unsplash.com/photo-1528825871115-3581a5387919?w=600&h=600&fit=crop&auto=format&q=80" alt="Sầu riêng" class="w-10 h-10 rounded-lg object-cover">
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-semibold text-gray-800">Sầu riêng Ri6</p>
+                  <p class="text-xs text-orange-600 font-medium">⚠️ Còn 3 kg – Sắp hết hàng</p>
+                </div>
+                <button class="text-xs bg-orange-500 text-white px-3 py-1.5 rounded-lg hover:bg-orange-600 transition-colors font-medium whitespace-nowrap">Nhập hàng</button>
+              </div>
+              <div class="flex items-center gap-3 p-3 bg-red-50 rounded-xl border border-red-100">
+                <img src="https://images.unsplash.com/photo-1601493700631-2b16ec4b4716?w=600&h=600&fit=crop&auto=format&q=80" alt="Xoài" class="w-10 h-10 rounded-lg object-cover">
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-semibold text-gray-800">Xoài cát Hoà Lộc</p>
+                  <p class="text-xs text-red-600 font-medium">🔴 Còn 1 kg – Hết hàng rất sớm</p>
+                </div>
+                <button class="text-xs bg-red-500 text-white px-3 py-1.5 rounded-lg hover:bg-red-600 transition-colors font-medium whitespace-nowrap">Nhập hàng</button>
+              </div>
+              <div class="flex items-center gap-3 p-3 bg-blue-50 rounded-xl border border-blue-100">
+                <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-lg">📋</div>
+                <div class="flex-1">
+                  <p class="text-sm font-semibold text-gray-800">5 đơn chờ xác nhận</p>
+                  <p class="text-xs text-blue-600 font-medium">Đơn cũ nhất: 4 giờ 20 phút trước</p>
+                </div>
+                <button class="text-xs bg-blue-500 text-white px-3 py-1.5 rounded-lg hover:bg-blue-600 transition-colors font-medium whitespace-nowrap">Xử lý</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Actions -->
+          <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <div class="flex items-center gap-2 mb-4">
+              <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center text-base">⚡</div>
+              <h3 class="font-bold text-gray-800">Thao tác nhanh</h3>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <button onclick="switchPage('products', null)" class="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-dashed border-gray-200 hover:border-primary hover:bg-green-50 transition-all group">
+                <div class="w-10 h-10 bg-green-100 group-hover:bg-primary rounded-xl flex items-center justify-center text-xl transition-colors">🛍️</div>
+                <span class="text-sm font-medium text-gray-600 group-hover:text-primary transition-colors">Thêm sản phẩm</span>
+              </button>
+              <button onclick="switchPage('categories', null)" class="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-dashed border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-all group">
+                <div class="w-10 h-10 bg-blue-100 group-hover:bg-blue-500 rounded-xl flex items-center justify-center text-xl transition-colors">📂</div>
+                <span class="text-sm font-medium text-gray-600 group-hover:text-blue-600 transition-colors">Thêm danh mục</span>
+              </button>
+              <button onclick="switchPage('orders', null)" class="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-dashed border-gray-200 hover:border-orange-400 hover:bg-orange-50 transition-all group">
+                <div class="w-10 h-10 bg-orange-100 group-hover:bg-orange-500 rounded-xl flex items-center justify-center text-xl transition-colors">📦</div>
+                <span class="text-sm font-medium text-gray-600 group-hover:text-orange-600 transition-colors">Xem đơn hàng</span>
+              </button>
+              <button onclick="exportReport()" class="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-dashed border-gray-200 hover:border-purple-400 hover:bg-purple-50 transition-all group">
+                <div class="w-10 h-10 bg-purple-100 group-hover:bg-purple-500 rounded-xl flex items-center justify-center text-xl transition-colors">📊</div>
+                <span class="text-sm font-medium text-gray-600 group-hover:text-purple-600 transition-colors">Xuất báo cáo</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- END DASHBOARD -->
+
+      <!-- ===== ORDERS PAGE ===== -->
+      <div id="page-orders" class="page-section">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <h2 class="text-xl font-bold text-gray-800 mb-2">📦 Quản lý Đơn hàng</h2>
+          <p class="text-gray-400 text-sm mb-6">Theo dõi và xử lý tất cả đơn hàng của khách hàng.</p>
+          <div class="flex flex-wrap gap-2 mb-4">
+            <button class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium">Tất cả (234)</button>
+            <button class="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-200">Chờ xác nhận (5)</button>
+            <button class="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-200">Đang giao (12)</button>
+            <button class="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-200">Hoàn thành (210)</button>
+            <button class="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-200">Đã hủy (7)</button>
+          </div>
+          <div class="p-12 text-center text-gray-300">
+            <i class="fas fa-box-open text-6xl mb-4 block"></i>
+            <p class="text-lg font-medium text-gray-400">Trang quản lý đơn hàng</p>
+            <p class="text-sm text-gray-300 mt-1">Nội dung chi tiết sẽ được hiển thị ở đây</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== PRODUCTS PAGE ===== -->
+      <div id="page-products" class="page-section">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <h2 class="text-xl font-bold text-gray-800">🛍️ Quản lý Sản phẩm</h2>
+              <p class="text-gray-400 text-sm mt-0.5">14 sản phẩm đang kinh doanh · 2 sắp hết hàng</p>
+            </div>
+            <button class="bg-primary text-white px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 hover:bg-primary-dark transition-colors">
+              <i class="fas fa-plus"></i> Thêm sản phẩm
+            </button>
+          </div>
+          <div class="p-12 text-center text-gray-300">
+            <i class="fas fa-shopping-bag text-6xl mb-4 block"></i>
+            <p class="text-lg font-medium text-gray-400">Trang quản lý sản phẩm</p>
+            <p class="text-sm text-gray-300 mt-1">Danh sách sản phẩm và form thêm/sửa sẽ ở đây</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== CATEGORIES PAGE ===== -->
+      <div id="page-categories" class="page-section">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <h2 class="text-xl font-bold text-gray-800 mb-2">📂 Quản lý Danh mục</h2>
+          <p class="text-gray-400 text-sm mb-6">Tổ chức sản phẩm theo danh mục.</p>
+          <div class="p-12 text-center text-gray-300">
+            <i class="fas fa-folder-open text-6xl mb-4 block"></i>
+            <p class="text-lg font-medium text-gray-400">Trang quản lý danh mục</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== CUSTOMERS PAGE ===== -->
+      <div id="page-customers" class="page-section">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <h2 class="text-xl font-bold text-gray-800 mb-2">👥 Quản lý Khách hàng</h2>
+          <p class="text-gray-400 text-sm mb-6">1,248 khách hàng đã đăng ký · 23 mới tháng này</p>
+          <div class="p-12 text-center text-gray-300">
+            <i class="fas fa-users text-6xl mb-4 block"></i>
+            <p class="text-lg font-medium text-gray-400">Trang quản lý khách hàng</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== COUPONS PAGE ===== -->
+      <div id="page-coupons" class="page-section">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <h2 class="text-xl font-bold text-gray-800 mb-2">🎟️ Quản lý Mã giảm giá</h2>
+          <p class="text-gray-400 text-sm mb-6">8 mã đang hoạt động · 3 mã sắp hết hạn</p>
+          <div class="p-12 text-center text-gray-300">
+            <i class="fas fa-ticket-alt text-6xl mb-4 block"></i>
+            <p class="text-lg font-medium text-gray-400">Trang quản lý mã giảm giá</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== SETTINGS PAGE ===== -->
+      <div id="page-settings" class="page-section">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <h2 class="text-xl font-bold text-gray-800 mb-2">⚙️ Cài đặt hệ thống</h2>
+          <p class="text-gray-400 text-sm mb-6">Quản lý thông tin cửa hàng, thanh toán, vận chuyển.</p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-4 border border-gray-200 rounded-xl hover:border-primary cursor-pointer transition-colors">
+              <div class="flex items-center gap-3 mb-2">
+                <div class="w-9 h-9 bg-green-100 rounded-lg flex items-center justify-center">🏪</div>
+                <h4 class="font-semibold text-gray-800">Thông tin cửa hàng</h4>
+              </div>
+              <p class="text-sm text-gray-400">Tên, địa chỉ, liên hệ, logo</p>
+            </div>
+            <div class="p-4 border border-gray-200 rounded-xl hover:border-primary cursor-pointer transition-colors">
+              <div class="flex items-center gap-3 mb-2">
+                <div class="w-9 h-9 bg-blue-100 rounded-lg flex items-center justify-center">💳</div>
+                <h4 class="font-semibold text-gray-800">Thanh toán</h4>
+              </div>
+              <p class="text-sm text-gray-400">Cổng thanh toán, VNPay, MoMo</p>
+            </div>
+            <div class="p-4 border border-gray-200 rounded-xl hover:border-primary cursor-pointer transition-colors">
+              <div class="flex items-center gap-3 mb-2">
+                <div class="w-9 h-9 bg-orange-100 rounded-lg flex items-center justify-center">🚚</div>
+                <h4 class="font-semibold text-gray-800">Vận chuyển</h4>
+              </div>
+              <p class="text-sm text-gray-400">Phí ship, đơn vị giao hàng, khu vực</p>
+            </div>
+            <div class="p-4 border border-gray-200 rounded-xl hover:border-primary cursor-pointer transition-colors">
+              <div class="flex items-center gap-3 mb-2">
+                <div class="w-9 h-9 bg-purple-100 rounded-lg flex items-center justify-center">🔔</div>
+                <h4 class="font-semibold text-gray-800">Thông báo</h4>
+              </div>
+              <p class="text-sm text-gray-400">Email, SMS, Zalo OA notifications</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Toast -->
+  <div id="adminToast" class="toast bg-primary text-white px-5 py-3 rounded-xl shadow-lg flex items-center gap-3">
+    <i class="fas fa-check-circle text-green-300"></i>
+    <span id="adminToastMsg">Thao tác thành công!</span>
+  </div>
+
+  <script>
+    // ===== TOP BAR DATE =====
+    (function() {
+      const days = ['Chủ nhật','Thứ hai','Thứ ba','Thứ tư','Thứ năm','Thứ sáu','Thứ bảy'];
+      const d = new Date();
+      document.getElementById('topBarDate').textContent =
+        `${days[d.getDay()]}, ${d.getDate()} tháng ${d.getMonth()+1}, ${d.getFullYear()}`;
+    })();
+
+    // ===== TOP PRODUCTS DATA =====
+    const topProducts = [
+      { name: 'Sầu riêng Ri6', emoji: '🌿', sales: 142, revenue: '42,600,000đ', pct: 100 },
+      { name: 'Táo Fuji Nhật Bản', emoji: '🍎', sales: 118, revenue: '29,500,000đ', pct: 83 },
+      { name: 'Cherry Mỹ hộp 500g', emoji: '🍒', sales: 97, revenue: '38,800,000đ', pct: 68 },
+      { name: 'Nho xanh Ninh Thuận', emoji: '🍇', sales: 84, revenue: '16,800,000đ', pct: 59 },
+      { name: 'Cam Úc Valencia', emoji: '🍊', sales: 76, revenue: '15,200,000đ', pct: 53 },
+    ];
+
+    const colors = ['bg-green-500', 'bg-blue-500', 'bg-red-400', 'bg-purple-500', 'bg-orange-400'];
+
+    function renderTopProducts() {
+      const container = document.getElementById('topProductsList');
+      container.innerHTML = topProducts.map((p, i) => `
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-sm shrink-0">${p.emoji}</div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-gray-700 truncate">${p.name}</p>
+            <div class="progress-bar mt-1">
+              <div class="progress-fill ${colors[i]}" style="width: 0%" data-width="${p.pct}%"></div>
+            </div>
+          </div>
+          <div class="text-right shrink-0">
+            <p class="text-xs font-bold text-gray-700">${p.sales} đ.bán</p>
+            <p class="text-xs text-gray-400">${p.revenue}</p>
+          </div>
+        </div>
+      `).join('');
+
+      // Animate progress bars
+      setTimeout(() => {
+        document.querySelectorAll('.progress-fill').forEach(el => {
+          el.style.width = el.dataset.width;
+        });
+      }, 300);
+    }
+
+    renderTopProducts();
+
+    // ===== SIDEBAR NAVIGATION =====
+    const pageTitles = {
+      dashboard: 'Dashboard',
+      orders: 'Quản lý Đơn hàng',
+      products: 'Quản lý Sản phẩm',
+      categories: 'Quản lý Danh mục',
+      customers: 'Quản lý Khách hàng',
+      coupons: 'Quản lý Mã giảm giá',
+      settings: 'Cài đặt',
+    };
+
+    function switchPage(pageId, clickedEl) {
+      // Hide all pages
+      document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
+      // Show target
+      const target = document.getElementById('page-' + pageId);
+      if (target) target.classList.add('active');
+
+      // Update sidebar active state
+      document.querySelectorAll('.sidebar-link').forEach(el => el.classList.remove('active'));
+      // Find correct sidebar link if clickedEl is null
+      if (!clickedEl) {
+        document.querySelectorAll('.sidebar-link').forEach(el => {
+          if (el.getAttribute('onclick') && el.getAttribute('onclick').includes("'" + pageId + "'")) {
+            el.classList.add('active');
+          }
+        });
+      } else {
+        clickedEl.classList.add('active');
+      }
+
+      // Update top bar title
+      document.getElementById('topBarTitle').textContent = pageTitles[pageId] || pageId;
+
+      // Close mobile sidebar
+      closeSidebar();
+    }
+
+    // ===== MOBILE SIDEBAR =====
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      sidebar.classList.toggle('-translate-x-full');
+      overlay.classList.toggle('hidden');
+    }
+
+    function closeSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      if (window.innerWidth < 768) {
+        sidebar.classList.add('-translate-x-full');
+        overlay.classList.add('hidden');
+      }
+    }
+
+    // ===== NOTIFICATIONS DROPDOWN =====
+    function toggleNotif() {
+      document.getElementById('notifDropdown').classList.toggle('hidden');
+    }
+
+    document.addEventListener('click', (e) => {
+      const dropdown = document.getElementById('notifDropdown');
+      if (!dropdown.contains(e.target) && !e.target.closest('[onclick="toggleNotif()"]')) {
+        dropdown.classList.add('hidden');
+      }
+    });
+
+    // ===== EXPORT REPORT =====
+    function exportReport() {
+      showAdminToast('📊 Đang xuất báo cáo tháng 9/2026...');
+    }
+
+    // ===== TOAST =====
+    function showAdminToast(msg) {
+      const toast = document.getElementById('adminToast');
+      const msgEl = document.getElementById('adminToastMsg');
+      msgEl.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+  </script>
+</body>
+</html>

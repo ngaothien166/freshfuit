@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Danh sách yêu thích – FreshFruit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: { DEFAULT: '#2D7A3A', light: '#4CAF61', dark: '#1F5C29', 50: '#F0FDF4', 100: '#DCFCE7' },
+            accent:  { DEFAULT: '#F97316', light: '#FB923C' },
+          },
+          fontFamily: { sans: ['Be Vietnam Pro', 'sans-serif'] },
+        }
+      }
+    }
+  </script>
+  <style>
+    .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f1f1; }
+    ::-webkit-scrollbar-thumb { background: #2D7A3A; border-radius: 3px; }
+    .toast { position: fixed; bottom: 24px; right: 24px; z-index: 9999; transform: translateY(100px); opacity: 0; transition: all 0.3s ease; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+  </style>
+</head>
+<body class="font-sans bg-gray-50 text-gray-800 antialiased flex flex-col min-h-screen">
+
+<!-- ══════════════════════════════════════════════════════
+     HEADER
+══════════════════════════════════════════════════════ -->
+<header id="header" class="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm shadow-sm transition-all duration-300">
+  <div class="max-w-7xl mx-auto px-4">
+    <!-- Top bar -->
+    <div class="hidden md:flex items-center justify-between py-1.5 text-xs text-gray-500 border-b border-gray-100">
+      <span>🚚 Miễn phí giao hàng cho đơn từ 300.000đ</span>
+      <div class="flex items-center gap-4">
+        <span>📞 1800 6789</span>
+        <span>|</span>
+        <a href="products.html?promo=true" class="hover:text-primary transition-colors text-red-500 font-medium">🔥 Siêu sale mùa hè giảm 30%</a>
+      </div>
+    </div>
+    <!-- Main nav -->
+    <div class="flex items-center justify-between py-3 gap-4">
+      <!-- Logo -->
+      <a href="index.html" class="flex items-center gap-2 shrink-0">
+        <div class="w-9 h-9 bg-primary rounded-full flex items-center justify-center shadow-sm">
+          <span class="text-white text-lg">🍎</span>
+        </div>
+        <div>
+          <span class="text-primary font-bold text-xl leading-none">Fresh</span><span class="text-accent font-bold text-xl leading-none">Fruit</span>
+          <p class="text-[10px] text-gray-400 leading-none">Tươi ngon mỗi ngày</p>
+        </div>
+      </a>
+      <!-- Search bar -->
+      <div class="flex-1 max-w-xl hidden md:block">
+        <div class="relative">
+          <input type="text" placeholder="Tìm kiếm trái cây tươi..." id="headerSearch"
+            class="w-full pl-4 pr-12 py-2.5 rounded-full border-2 border-gray-200 focus:border-primary outline-none text-sm transition-colors">
+          <button onclick="submitSearch()" class="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white hover:bg-primary-dark transition-colors">
+            <i class="fas fa-search text-xs"></i>
+          </button>
+        </div>
+      </div>
+      <!-- Right actions -->
+      <div class="flex items-center gap-1 sm:gap-3">
+        <a href="products.html" class="hidden sm:flex items-center gap-1 text-sm text-gray-600 hover:text-primary transition-colors px-2 py-1 font-medium">
+          <i class="fas fa-th-large text-xs"></i>
+          <span>Cửa hàng</span>
+        </a>
+        <a href="wishlist.html" class="w-9 h-9 flex items-center justify-center text-primary relative transition-colors" title="Yêu thích">
+          <i class="fas fa-heart text-red-500"></i>
+          <span id="wishlistCount" class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center hidden">0</span>
+        </a>
+        <a href="cart.html" class="relative flex items-center gap-2 bg-primary text-white px-3.5 py-2 rounded-full hover:bg-primary-dark transition-colors text-sm font-medium shadow-sm">
+          <i class="fas fa-shopping-basket"></i>
+          <span class="hidden sm:inline">Giỏ hàng</span>
+          <span id="cartCount" class="bg-accent text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">0</span>
+        </a>
+        <a href="admin.html" class="hidden md:flex w-9 h-9 items-center justify-center text-gray-500 hover:text-primary transition-colors" title="Trang quản trị">
+          <i class="fas fa-user-shield"></i>
+        </a>
+        <button onclick="toggleMobileMenu()" class="md:hidden w-9 h-9 flex items-center justify-center text-gray-600">
+          <i class="fas fa-bars" id="menuIcon"></i>
+        </button>
+      </div>
+    </div>
+    <!-- Category sub-nav -->
+    <nav class="hidden md:flex items-center gap-8 py-2 text-sm font-medium border-t border-gray-100">
+      <a href="index.html" class="text-gray-600 hover:text-primary transition-colors pb-1">Trang chủ</a>
+      <a href="products.html" class="text-gray-600 hover:text-primary transition-colors pb-1">Tất cả sản phẩm</a>
+      <a href="products.html?cat=viet-nam" class="text-gray-600 hover:text-primary transition-colors pb-1">Trái cây Việt Nam</a>
+      <a href="products.html?cat=nhap-khau" class="text-gray-600 hover:text-primary transition-colors pb-1">Trái cây nhập khẩu</a>
+      <a href="products.html?cat=theo-mua" class="text-gray-600 hover:text-primary transition-colors pb-1">Trái cây theo mùa</a>
+      <a href="products.html?cat=combo" class="text-gray-600 hover:text-primary transition-colors pb-1">Combo quà tặng</a>
+      <a href="products.html?promo=true" class="text-accent hover:text-accent-light transition-colors pb-1 flex items-center gap-1">
+        <i class="fas fa-bolt text-xs"></i> Khuyến mãi Hot
+      </a>
+    </nav>
+  </div>
+  <!-- Mobile Menu Dropdown -->
+  <div id="mobileMenu" class="hidden md:hidden border-t bg-white px-4 py-3 shadow-lg">
+    <div class="relative mb-3">
+      <input type="text" placeholder="Tìm sản phẩm..." id="mobileSearchInput"
+        class="w-full pl-3 pr-10 py-2 border rounded-full text-sm outline-none focus:border-primary">
+      <button onclick="submitMobileSearch()" class="absolute right-3 top-2.5 text-gray-400">
+        <i class="fas fa-search text-xs"></i>
+      </button>
+    </div>
+    <div class="flex flex-col space-y-2 text-sm font-medium">
+      <a href="index.html" class="py-1 text-gray-700 hover:text-primary">🏠 Trang chủ</a>
+      <a href="products.html" class="py-1 text-gray-700 hover:text-primary">🛍️ Tất cả sản phẩm</a>
+      <a href="products.html?cat=viet-nam" class="py-1 text-gray-700 hover:text-primary">🇻🇳 Trái cây Việt Nam</a>
+      <a href="products.html?cat=nhap-khau" class="py-1 text-gray-700 hover:text-primary">✈️ Trái cây nhập khẩu</a>
+      <a href="wishlist.html" class="py-1 text-primary font-bold">❤️ Yêu thích</a>
+      <a href="cart.html" class="py-1 text-gray-700 hover:text-primary">🛒 Giỏ hàng</a>
+      <a href="admin.html" class="py-1 text-gray-700 hover:text-primary">⚙️ Quản trị Admin</a>
+    </div>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════════════════
+     MAIN CONTENT
+══════════════════════════════════════════════════════ -->
+<main class="flex-grow pt-28 md:pt-36 pb-16">
+  <div class="max-w-7xl mx-auto px-4">
+
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-xs md:text-sm text-gray-500 mb-6" aria-label="Breadcrumb">
+      <a href="index.html" class="hover:text-primary transition-colors">Trang chủ</a>
+      <i class="fas fa-chevron-right text-[10px] text-gray-400"></i>
+      <span class="text-gray-800 font-medium">Danh sách yêu thích</span>
+    </nav>
+
+    <!-- Page Header Banner -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-gray-100 shadow-sm mb-8">
+      <div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-gray-900 flex items-center gap-2">
+          <span>Sản phẩm yêu thích</span>
+          <span class="text-red-500">❤️</span>
+        </h1>
+        <p class="text-xs sm:text-sm text-gray-500 mt-1">
+          Bạn đang lưu <span id="wishlistTotalCount" class="font-bold text-primary">0</span> sản phẩm trong danh sách
+        </p>
+      </div>
+      <div id="wishlistActions" class="flex items-center gap-3">
+        <button onclick="addAllToCart()" class="bg-primary hover:bg-primary-dark text-white text-xs font-bold px-4 py-2.5 rounded-full transition-all flex items-center gap-2 shadow-sm">
+          <i class="fas fa-cart-plus"></i>
+          <span>Thêm tất cả vào giỏ</span>
+        </button>
+        <button onclick="clearAllWishlist()" class="border border-gray-200 hover:bg-red-50 hover:text-red-600 text-gray-500 text-xs font-semibold px-4 py-2.5 rounded-full transition-all flex items-center gap-1.5">
+          <i class="fas fa-trash-alt text-xs"></i>
+          <span>Xóa tất cả</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyWishlist" class="hidden bg-white rounded-3xl p-12 text-center max-w-lg mx-auto shadow-sm border border-gray-100 my-8">
+      <div class="w-20 h-20 bg-red-50 text-red-400 rounded-full flex items-center justify-center mx-auto text-4xl mb-4">
+        <i class="far fa-heart"></i>
+      </div>
+      <h3 class="text-xl font-bold text-gray-800 mb-2">Danh sách yêu thích đang trống</h3>
+      <p class="text-gray-500 text-xs sm:text-sm mb-6 leading-relaxed">
+        Hãy duyệt qua các loại trái cây thơm ngon của chúng tôi và nhấn vào biểu tượng trái tim để lưu lại nhé!
+      </p>
+      <a href="products.html" class="inline-flex items-center gap-2 bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-full text-xs sm:text-sm font-bold shadow-md hover:shadow-lg transition-all">
+        <i class="fas fa-shopping-bag"></i>
+        <span>Khám phá sản phẩm ngay</span>
+      </a>
+    </div>
+
+    <!-- Wishlist Grid -->
+    <div id="wishlistGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+      <!-- Rendered by JS -->
+    </div>
+
+    <!-- Recommendations Section -->
+    <section class="mt-16 pt-12 border-t border-gray-200">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h2 class="text-xl sm:text-2xl font-bold text-gray-900">Gợi ý dành riêng cho bạn</h2>
+          <p class="text-xs text-gray-500 mt-0.5">Top trái cây tươi mới được ưa chuộng nhất tuần này</p>
+        </div>
+        <a href="products.html" class="text-xs font-bold text-primary hover:underline flex items-center gap-1">
+          <span>Xem tất cả</span>
+          <i class="fas fa-arrow-right text-[10px]"></i>
+        </a>
+      </div>
+      <div id="recommendGrid" class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<!-- ══════════════════════════════════════════════════════
+     FOOTER
+══════════════════════════════════════════════════════ -->
+<footer class="bg-gray-900 text-gray-300 mt-auto">
+  <div class="max-w-7xl mx-auto px-4 py-12">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div>
+        <div class="flex items-center gap-2 mb-4">
+          <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center"><span class="text-white text-xl">🍎</span></div>
+          <div><span class="text-white font-bold text-xl">Fresh</span><span class="text-accent font-bold text-xl">Fruit</span></div>
+        </div>
+        <p class="text-sm text-gray-400 leading-relaxed mb-4">Cung cấp trái cây tươi ngon, an toàn, chất lượng cao trực tiếp từ nông trại sạch đến bàn ăn gia đình bạn.</p>
+        <div class="flex gap-3">
+          <a href="#" class="w-9 h-9 bg-blue-600 rounded-full flex items-center justify-center text-white hover:bg-blue-700 transition-colors"><i class="fab fa-facebook-f text-sm"></i></a>
+          <a href="#" class="w-9 h-9 bg-gradient-to-br from-purple-600 to-pink-500 rounded-full flex items-center justify-center text-white hover:opacity-90 transition-opacity"><i class="fab fa-instagram text-sm"></i></a>
+          <a href="#" class="w-9 h-9 bg-black rounded-full flex items-center justify-center text-white hover:bg-gray-800 transition-colors"><i class="fab fa-tiktok text-sm"></i></a>
+        </div>
+      </div>
+      <div>
+        <h4 class="text-white font-semibold mb-4 text-sm">Liên kết nhanh</h4>
+        <ul class="space-y-2 text-sm">
+          <li><a href="index.html" class="hover:text-primary transition-colors">Trang chủ</a></li>
+          <li><a href="products.html" class="hover:text-primary transition-colors">Tất cả sản phẩm</a></li>
+          <li><a href="products.html?cat=viet-nam" class="hover:text-primary transition-colors">Trái cây Việt Nam</a></li>
+          <li><a href="products.html?cat=nhap-khau" class="hover:text-primary transition-colors">Trái cây nhập khẩu</a></li>
+          <li><a href="products.html?promo=true" class="hover:text-primary transition-colors">Khuyến mãi hot</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="text-white font-semibold mb-4 text-sm">Chính sách & Hỗ trợ</h4>
+        <ul class="space-y-2 text-sm">
+          <li><a href="#" class="hover:text-primary transition-colors">Chính sách giao nhận & đổi trả</a></li>
+          <li><a href="#" class="hover:text-primary transition-colors">Quy trình kiểm định chất lượng</a></li>
+          <li><a href="#" class="hover:text-primary transition-colors">Bảo mật thông tin khách hàng</a></li>
+          <li><a href="#" class="hover:text-primary transition-colors">Hình thức thanh toán linh hoạt</a></li>
+          <li><a href="admin.html" class="hover:text-primary transition-colors">Cổng thông tin quản trị</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="text-white font-semibold mb-4 text-sm">Liên hệ cửa hàng</h4>
+        <ul class="space-y-3 text-sm">
+          <li class="flex items-start gap-2"><i class="fas fa-map-marker-alt text-primary mt-1 w-4"></i><span>123 Nguyễn Văn Linh, Quận 7, TP. Hồ Chí Minh</span></li>
+          <li class="flex items-center gap-2"><i class="fas fa-phone text-primary w-4"></i><a href="tel:18006789" class="hover:text-primary font-bold">1800 6789</a></li>
+          <li class="flex items-center gap-2"><i class="fas fa-envelope text-primary w-4"></i><a href="mailto:hello@freshfruit.vn" class="hover:text-primary">hello@freshfruit.vn</a></li>
+          <li class="flex items-center gap-2"><i class="fas fa-clock text-primary w-4"></i><span>7:00 – 21:30 hàng ngày</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="border-t border-gray-800 py-4 text-center text-xs text-gray-500">
+    <p>© 2026 FreshFruit. Trái cây tươi trực tuyến hàng đầu Việt Nam.</p>
+  </div>
+</footer>
+
+<!-- Toast Element -->
+<div id="toast" class="toast"></div>
+
+<!-- Data & Store scripts -->
+<script src="js/data.js"></script>
+<script src="js/store.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  Store.initUI();
+  renderWishlist();
+  renderRecommendations();
+});
+
+function renderWishlist() {
+  const wishlist = Store.getWishlist();
+  const countEl = document.getElementById('wishlistTotalCount');
+  const gridEl = document.getElementById('wishlistGrid');
+  const emptyEl = document.getElementById('emptyWishlist');
+  const actionsEl = document.getElementById('wishlistActions');
+
+  countEl.textContent = wishlist.length;
+
+  if (wishlist.length === 0) {
+    gridEl.innerHTML = '';
+    emptyEl.classList.remove('hidden');
+    actionsEl.classList.add('hidden');
+    return;
+  }
+
+  emptyEl.classList.add('hidden');
+  actionsEl.classList.remove('hidden');
+
+  gridEl.innerHTML = wishlist.map(product => {
+    const hasDiscount = product.discount > 0;
+    const cat = CATEGORIES.find(c => c.id === product.category);
+    return `
+      <div class="product-card bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 group relative border border-gray-100 flex flex-col justify-between" id="wish-card-${product.id}">
+        <div>
+          <div class="relative overflow-hidden">
+            <a href="product-detail.html?slug=${product.slug}">
+              <img src="${product.image}" alt="${product.name}"
+                class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500"
+                loading="lazy">
+            </a>
+            <div class="absolute top-3 left-3 flex flex-col gap-1">
+              ${hasDiscount ? `<span class="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">-${product.discount}%</span>` : ''}
+              ${product.isBestSeller ? `<span class="bg-accent text-white text-[10px] font-bold px-2 py-0.5 rounded-full">Hot</span>` : ''}
+            </div>
+            <button onclick="removeWishItem('${product.id}')"
+              class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur shadow flex items-center justify-center text-red-500 hover:bg-red-50 transition-colors"
+              title="Xóa khỏi yêu thích">
+              <i class="fas fa-trash-alt text-xs"></i>
+            </button>
+          </div>
+          <div class="p-4">
+            <p class="text-[10px] text-gray-400 mb-1">${cat ? cat.name : 'Trái cây'}</p>
+            <a href="product-detail.html?slug=${product.slug}">
+              <h3 class="font-semibold text-gray-800 mb-1 line-clamp-2 hover:text-primary transition-colors text-sm leading-snug">${product.name}</h3>
+            </a>
+            <div class="flex items-center gap-1 mb-2">
+              ${renderStars(product.rating)}
+              <span class="text-[10px] text-gray-400">(${product.reviewCount})</span>
+            </div>
+          </div>
+        </div>
+        <div class="p-4 pt-0">
+          <div class="flex items-baseline justify-between mb-3">
+            <div>
+              <p class="text-primary font-bold text-sm">${formatPrice(product.price)}<span class="text-[10px] font-normal text-gray-400">/${product.unit}</span></p>
+              ${product.originalPrice ? `<p class="text-gray-400 text-[10px] line-through">${formatPrice(product.originalPrice)}</p>` : ''}
+            </div>
+            <span class="text-[10px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-medium">Còn hàng</span>
+          </div>
+          <button onclick="handleAddToCart(event, '${product.id}')"
+            class="w-full bg-primary hover:bg-primary-dark text-white text-xs font-bold py-2 rounded-full transition-all flex items-center justify-center gap-1.5 shadow-sm active:scale-95">
+            <i class="fas fa-shopping-basket text-xs"></i>
+            <span>Thêm vào giỏ</span>
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function removeWishItem(id) {
+  const product = PRODUCTS.find(p => p.id === id);
+  if (product) {
+    Store.toggleWishlist(product);
+    renderWishlist();
+  }
+}
+
+function clearAllWishlist() {
+  if (confirm('Bạn có chắc muốn xóa tất cả sản phẩm khỏi danh sách yêu thích?')) {
+    localStorage.removeItem('ff_wishlist');
+    Store.initUI();
+    renderWishlist();
+    Store.showToast('Đã xóa tất cả sản phẩm khỏi danh sách yêu thích', 'info');
+  }
+}
+
+function addAllToCart() {
+  const wishlist = Store.getWishlist();
+  if (wishlist.length === 0) return;
+  wishlist.forEach(p => {
+    Store.addToCart(p, 1);
+  });
+  Store.showToast(`Đã thêm tất cả ${wishlist.length} sản phẩm vào giỏ hàng!`, 'success');
+}
+
+function renderRecommendations() {
+  const container = document.getElementById('recommendGrid');
+  const items = PRODUCTS.slice(0, 4);
+  container.innerHTML = items.map(p => renderProductCard(p)).join('');
+}
+
+function submitSearch() {
+  const q = document.getElementById('headerSearch').value.trim();
+  if (q) window.location.href = `products.html?search=${encodeURIComponent(q)}`;
+}
+function submitMobileSearch() {
+  const q = document.getElementById('mobileSearchInput').value.trim();
+  if (q) window.location.href = `products.html?search=${encodeURIComponent(q)}`;
+}
+</script>
+</body>
+</html>
